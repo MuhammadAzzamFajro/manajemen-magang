@@ -29,14 +29,31 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        return view('dashboard.guru.index', compact('stats', 'magangs'));
+        $latestSiswas = Siswa::with(['kelas'])
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        $pendingMagangs = Magang::with(['siswa', 'dudi'])
+            ->where('status', 'Pending')
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        $pendingLogbooks = logbook::with(['siswa.user', 'siswa.kelas'])
+            ->where('status', 'Menunggu')
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        return view('dashboard.guru.index', compact('stats', 'magangs', 'latestSiswas', 'pendingMagangs', 'pendingLogbooks'));
     }
 
     private function getLoggedInSiswa()
     {
         $user = Auth::user();
         if (!$user) return null;
-        
+
         $siswa = Siswa::where('user_id', $user->id)
             ->with(['kelas', 'user'])
             ->first();
@@ -45,7 +62,7 @@ class DashboardController extends Controller
         if (!$siswa && $user->role === 'Siswa') {
             // Get or create a default class
             $kelas = Kelas::first() ?? Kelas::create(['nama' => 'XII RPL 1']);
-            
+
             $siswa = Siswa::create([
                 'user_id' => $user->id,
                 'nis' => 'NIS-' . str_pad($user->id, 5, '0', STR_PAD_LEFT),
@@ -53,7 +70,7 @@ class DashboardController extends Controller
                 'kelas_id' => $kelas->id,
                 'alamat' => 'Belum diisi',
             ]);
-            
+
             $siswa->load(['kelas', 'user']);
         }
 
@@ -91,7 +108,7 @@ class DashboardController extends Controller
             Kelas::create(['nama' => 'XII RPL 2']);
             Kelas::create(['nama' => 'XII TKJ 1']);
         }
-        
+
         $siswas = Siswa::with(['kelas', 'user'])->latest()->get();
         $kelases = Kelas::all();
         return view('dashboard.guru.siswa', compact('siswas', 'kelases'));
@@ -214,11 +231,11 @@ class DashboardController extends Controller
     public function storeLogbook(Request $request)
     {
         $siswa = $this->getLoggedInSiswa();
-        
+
         if (!$siswa) {
             return back()->with('error', 'Akun Anda tidak terhubung dengan data Siswa. Silakan hubungi admin.');
         }
-        
+
         logbook::create([
             'siswa_id' => $siswa->id,
             'tanggal' => $request->tanggal ?? now(),
@@ -233,7 +250,7 @@ class DashboardController extends Controller
     public function storeApplication(Request $request)
     {
         $siswa = $this->getLoggedInSiswa();
-        
+
         if (!$siswa) {
             return back()->with('error', 'Akun Anda tidak terhubung dengan data Siswa.');
         }

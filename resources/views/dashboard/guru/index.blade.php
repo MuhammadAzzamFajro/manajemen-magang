@@ -10,7 +10,7 @@
             <h1 class="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none mb-4 bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent">Panel Monitoring</h1>
             <p class="text-gray-400 font-medium italic text-base md:text-lg opacity-80 max-w-2xl">"SMK Negeri 1 Surabaya &bull; Pusat Unggulan & Mitra Industri Digital Hub"</p>
         </div>
-        
+
         <div class="flex flex-col sm:flex-row items-stretch lg:items-center gap-4 shrink-0">
             @if($stats['pendingLogbook'] > 0 || $stats['pendingMagang'] > 0)
                 <a href="{{ route('guru.logbook') }}" class="flex items-center gap-4 bg-orange-600/20 border border-orange-500/40 px-6 py-4 rounded-3xl animate-pulse hover:bg-orange-600/30 transition">
@@ -23,13 +23,13 @@
                     </div>
                 </a>
             @endif
-            
+
             <div class="flex gap-2 bg-gray-950 p-2 rounded-[2rem] border border-gray-800 backdrop-blur-md shadow-2xl">
-                <button @click="showSwitchModal = true; switchRoleLabel = 'Siswa'" 
+                <button @click="showSwitchModal = true; switchRoleLabel = 'Siswa'"
                    class="px-6 py-3.5 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 hover:bg-gray-800 text-gray-500 hover:text-white">
                     <i class="fas fa-user-graduate mr-2"></i> Siswa
                 </button>
-                <a href="{{ route('dashboard.guru') }}" 
+                <a href="{{ route('dashboard.guru') }}"
                    class="px-6 py-3.5 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 bg-blue-600 text-white shadow-xl shadow-blue-600/30">
                     <i class="fas fa-chalkboard-teacher mr-2"></i> Guru
                 </a>
@@ -37,148 +37,233 @@
         </div>
     </div>
 
-    <!-- Cards Statistik (Ultra Premium Grid) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <div class="bg-gray-800/40 p-6 md:p-8 rounded-[2.5rem] border border-gray-700/50 relative overflow-hidden group shadow-2xl backdrop-blur-md hover:border-blue-500/30 transition-all duration-500 hover:scale-[1.02]">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500 opacity-5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-            <p class="text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Total Siswa Aktif</p>
-            <div class="flex items-end gap-3">
-                <h3 class="text-4xl md:text-5xl font-black text-white transition-all group-hover:text-blue-400">{{ $stats['totalSiswa'] }}</h3>
-                <span class="text-[10px] font-bold text-gray-600 mb-2 uppercase">Talenta</span>
+    <!-- Stats Grid: Fully Responsive -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 mb-10">
+        <!-- Total Siswa -->
+        <div class="group bg-gray-900 border border-gray-800 p-6 rounded-[2rem] shadow-2xl hover:border-blue-500/50 transition-all duration-500 hover:scale-[1.02] flex items-center gap-5">
+            <div class="w-14 h-14 bg-blue-600/20 rounded-2xl flex items-center justify-center text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shrink-0">
+                <i class="fas fa-users text-2xl"></i>
             </div>
-            <div class="mt-6 flex items-center gap-2">
-                <div class="h-1 flex-1 bg-gray-950 rounded-full overflow-hidden">
-                    <div class="h-full bg-blue-500 w-full rounded-full"></div>
-                </div>
-                <i class="fas fa-user-graduate text-blue-500/50 text-xs"></i>
+            <div>
+                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-2">Total Talenta</p>
+                <h3 class="text-3xl font-black text-white leading-none">{{ $stats['totalSiswa'] }} <span class="text-[10px] font-bold text-gray-600 uppercase">Siswa</span></h3>
             </div>
         </div>
 
-        <div class="bg-gray-800/40 p-6 md:p-8 rounded-[2.5rem] border border-gray-700/50 relative overflow-hidden group shadow-2xl backdrop-blur-md hover:border-emerald-500/30 transition-all duration-500 hover:scale-[1.02]">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500 opacity-5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-            <p class="text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Mitra Industri</p>
-            <div class="flex items-end gap-3">
-                <h3 class="text-4xl md:text-5xl font-black text-white transition-all group-hover:text-emerald-400">{{ $stats['totalDudi'] }}</h3>
-                <span class="text-[10px] font-bold text-gray-600 mb-2 uppercase">DUDI</span>
+        <!-- DUDI -->
+        <div class="group bg-gray-900 border border-gray-800 p-6 rounded-[2rem] shadow-2xl hover:border-cyan-500/50 transition-all duration-500 hover:scale-[1.02] flex items-center gap-5">
+            <div class="w-14 h-14 bg-cyan-600/20 rounded-2xl flex items-center justify-center text-cyan-500 group-hover:bg-cyan-600 group-hover:text-white transition-all duration-500 shrink-0">
+                <i class="fas fa-building text-2xl"></i>
             </div>
-            <div class="mt-6 flex items-center gap-2">
-                <div class="h-1 flex-1 bg-gray-950 rounded-full overflow-hidden">
-                    <div class="h-full bg-emerald-500 w-[70%] rounded-full"></div>
-                </div>
-                <i class="fas fa-industry text-emerald-500/50 text-xs"></i>
+            <div>
+                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-2">Mitra Aktif</p>
+                <h3 class="text-3xl font-black text-white leading-none">{{ $stats['totalDudi'] }} <span class="text-[10px] font-bold text-gray-600 uppercase">Unit</span></h3>
             </div>
         </div>
 
-        <div class="bg-gray-800/40 p-6 md:p-8 rounded-[2.5rem] border border-gray-700/50 relative overflow-hidden group shadow-2xl backdrop-blur-md hover:border-purple-500/30 transition-all duration-500 hover:scale-[1.02]">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500 opacity-5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-            <p class="text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Penempatan Magang</p>
-            <div class="flex items-end gap-3">
-                <h3 class="text-4xl md:text-5xl font-black text-white transition-all group-hover:text-purple-400">{{ $stats['totalMagang'] }}</h3>
-                <span class="text-[10px] font-bold text-gray-600 mb-2 uppercase">Aktif</span>
+        <!-- Magang Aktif -->
+        <div class="group bg-gray-900 border border-gray-800 p-6 rounded-[2rem] shadow-2xl hover:border-purple-500/50 transition-all duration-500 hover:scale-[1.02] flex items-center gap-5">
+            <div class="w-14 h-14 bg-purple-600/20 rounded-2xl flex items-center justify-center text-purple-500 group-hover:bg-purple-600 group-hover:text-white transition-all duration-500 shrink-0">
+                <i class="fas fa-briefcase text-2xl"></i>
             </div>
-            <div class="mt-6 flex items-center gap-2">
-                <div class="h-1 flex-1 bg-gray-950 rounded-full overflow-hidden">
-                    <div class="h-full bg-purple-500 w-[85%] rounded-full"></div>
-                </div>
-                <i class="fas fa-briefcase text-purple-500/50 text-xs"></i>
+            <div>
+                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-2">Penempatan</p>
+                <h3 class="text-3xl font-black text-white leading-none">{{ $stats['totalMagang'] }} <span class="text-[10px] font-bold text-gray-600 uppercase">Aktif</span></h3>
             </div>
         </div>
 
-        <div class="bg-gray-800/40 p-6 md:p-8 rounded-[2.5rem] border border-gray-700/50 relative overflow-hidden group shadow-2xl backdrop-blur-md hover:border-rose-500/30 transition-all duration-500 hover:scale-[1.02]">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-rose-500 opacity-5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-            <p class="text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Laporan Logbook</p>
-            <div class="flex items-end gap-3">
-                <h3 class="text-4xl md:text-5xl font-black text-white transition-all group-hover:text-rose-400">{{ $stats['totalLogbook'] }}</h3>
-                <span class="text-[10px] font-bold text-gray-600 mb-2 uppercase">Entri</span>
+        <!-- Logbook Today -->
+        <div class="group bg-gray-900 border border-gray-800 p-6 rounded-[2rem] shadow-2xl hover:border-red-500/50 transition-all duration-500 hover:scale-[1.02] flex items-center gap-5">
+            <div class="w-14 h-14 bg-red-600/20 rounded-2xl flex items-center justify-center text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all duration-500 shrink-0">
+                <i class="fas fa-book-open text-2xl"></i>
             </div>
-            <div class="mt-6 flex items-center gap-2">
-                <div class="h-1 flex-1 bg-gray-950 rounded-full overflow-hidden">
-                    <div class="h-full bg-rose-500 w-[60%] rounded-full"></div>
-                </div>
-                <i class="fas fa-book text-rose-500/50 text-xs"></i>
+            <div>
+                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-2">Total Laporan</p>
+                <h3 class="text-3xl font-black text-white leading-none">{{ $stats['totalLogbook'] }} <span class="text-[10px] font-bold text-gray-600 uppercase">Entri</span></h3>
             </div>
         </div>
     </div>
 
-    <!-- Tabel Magang Terbaru (Premium Table) -->
-    <div class="bg-gray-950 border border-gray-800 rounded-[2.5rem] shadow-3xl relative overflow-hidden backdrop-blur-3xl">
-        <div class="p-6 md:p-10 border-b border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <h2 class="text-xl md:text-2xl font-black text-white flex items-center tracking-tighter uppercase leading-none">
-                <i class="fas fa-bolt mr-3 text-yellow-500 animate-pulse"></i> Aktivitas Terbaru
-            </h2>
-            <a href="{{ route('guru.magang') }}" class="text-[9px] md:text-[10px] font-black text-cyan-500 uppercase tracking-[0.2em] hover:text-cyan-400 transition-all group">
-                Lihat Semua <span class="group-hover:ml-1 transition-all">Data &rarr;</span>
-            </a>
-        </div>
-        
-        @if(count($magangs) == 0)
-            <div class="py-24 text-center text-gray-700 flex flex-col items-center">
-                <div class="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mb-4 border border-gray-800">
-                    <i class="fas fa-inbox text-3xl opacity-20"></i>
-                </div>
-                <p class="font-bold italic text-sm tracking-tight opacity-50 uppercase">Belum ada aktivitas magang yang tercatat.</p>
+    <!-- Pending Verifications Section -->
+    @if($pendingMagangs->count() > 0 || $pendingLogbooks->count() > 0)
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+        <!-- Pending Magang -->
+        @if($pendingMagangs->count() > 0)
+        <div class="bg-gray-900 border border-orange-500/40 rounded-[2.5rem] shadow-2xl p-8">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                    <i class="fas fa-clock text-orange-500 animate-pulse"></i> Pengajuan Magang Pending
+                </h2>
+                <a href="{{ route('guru.magang') }}" class="text-[9px] font-black text-orange-500 uppercase tracking-widest hover:text-orange-400">Kelola Semua &rarr;</a>
             </div>
-        @else
-            <div class="overflow-x-auto">
-                <div class="min-w-[850px]">
-                    <table class="w-full text-left text-sm text-gray-400">
-                        <thead class="text-[10px] font-black uppercase tracking-widest text-gray-600 bg-gray-900/50">
+
+            <div class="space-y-4">
+                @foreach($pendingMagangs as $pm)
+                <div class="p-4 bg-gray-950/50 border border-gray-800 rounded-2xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center text-[10px] font-black text-orange-400 border border-gray-700">
+                                {{ substr($pm->siswa->nama ?? 'S', 0, 1) }}
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-black text-white">{{ $pm->siswa->nama ?? '-' }}</h4>
+                                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{{ $pm->dudi->nama ?? '-' }}</p>
+                            </div>
+                        </div>
+                        <div class="text-[9px] font-black text-gray-600 uppercase tracking-widest">
+                            {{ $pm->created_at->diffForHumans() }}
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <form method="POST" action="{{ route('guru.magang.verify', $pm) }}" class="flex-1">
+                            @csrf
+                            <input type="hidden" name="status" value="Setuju">
+                            <button type="submit" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-black uppercase rounded-lg transition">
+                                Setujui
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('guru.magang.verify', $pm) }}" class="flex-1">
+                            @csrf
+                            <input type="hidden" name="status" value="Tolak">
+                            <button type="submit" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase rounded-lg transition">
+                                Tolak
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        <!-- Pending Logbook -->
+        @if($pendingLogbooks->count() > 0)
+        <div class="bg-gray-900 border border-yellow-500/40 rounded-[2.5rem] shadow-2xl p-8">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                    <i class="fas fa-book text-yellow-500 animate-pulse"></i> Logbook Menunggu Verifikasi
+                </h2>
+                <a href="{{ route('guru.logbook') }}" class="text-[9px] font-black text-yellow-500 uppercase tracking-widest hover:text-yellow-400">Kelola Semua &rarr;</a>
+            </div>
+
+            <div class="space-y-4">
+                @foreach($pendingLogbooks as $pl)
+                <div class="p-4 bg-gray-950/50 border border-gray-800 rounded-2xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center text-[10px] font-black text-yellow-400 border border-gray-700">
+                                {{ substr($pl->siswa->nama ?? 'S', 0, 1) }}
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-black text-white">{{ $pl->siswa->nama ?? '-' }}</h4>
+                                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{{ $pl->kegiatan }}</p>
+                            </div>
+                        </div>
+                        <div class="text-[9px] font-black text-gray-600 uppercase tracking-widest">
+                            {{ $pl->created_at->diffForHumans() }}
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <form method="POST" action="{{ route('guru.logbook.verify', $pl) }}" class="flex-1">
+                            @csrf
+                            <input type="hidden" name="status" value="Setuju">
+                            <button type="submit" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-black uppercase rounded-lg transition">
+                                Setujui
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('guru.logbook.verify', $pl) }}" class="flex-1">
+                            @csrf
+                            <input type="hidden" name="status" value="Tolak">
+                            <button type="submit" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase rounded-lg transition">
+                                Tolak
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+    </div>
+    @endif
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <!-- Tabel Magang Terbaru (Left - 2/3) -->
+        <div class="xl:col-span-2 space-y-8">
+            <div class="bg-gray-900 border border-gray-800 rounded-[2.5rem] shadow-2xl overflow-hidden">
+                <div class="p-8 border-b border-gray-800 flex items-center justify-between">
+                    <h2 class="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                        <i class="fas fa-bolt text-yellow-500 animate-pulse"></i> Penempatan Aktif
+                    </h2>
+                    <a href="{{ route('guru.magang') }}" class="text-[9px] font-black text-cyan-500 uppercase tracking-widest hover:text-cyan-400">Semua Data &rarr;</a>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-950 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
                             <tr>
-                                <th class="p-6">Identitas Siswa</th>
-                                <th class="p-6">Mitra Industri / Lokasi</th>
-                                <th class="p-6">Periode</th>
+                                <th class="p-6">Siswa</th>
+                                <th class="p-6">Mitra</th>
                                 <th class="p-6 text-center">Status</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-800/50">
-                            @foreach($magangs as $row)
-                                <tr class="hover:bg-gray-900/40 transition-all duration-300 group">
-                                    <td class="p-6">
-                                        <div class="flex items-center gap-4">
-                                            <div class="w-10 h-10 bg-gray-900 border border-gray-800 rounded-xl flex items-center justify-center text-cyan-500 font-black text-xs group-hover:bg-cyan-600 group-hover:text-white transition-all duration-500">
-                                                {{ substr($row->siswa->nama ?? 'S', 0, 1) }}
-                                            </div>
-                                            <div>
-                                                <div class="text-white font-black group-hover:text-cyan-400 transition-colors">{{ $row->siswa->nama ?? 'Siswa' }}</div>
-                                                <div class="text-[9px] text-gray-600 font-bold uppercase tracking-widest mt-0.5">NIS: {{ $row->siswa->nis ?? '-' }}</div>
-                                            </div>
+                            @forelse($magangs as $row)
+                            <tr class="hover:bg-gray-800/30 transition group">
+                                <td class="p-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-[10px] font-black text-blue-400 border border-gray-700">
+                                            {{ substr($row->siswa->nama ?? 'S', 0, 1) }}
                                         </div>
-                                    </td>
-                                    <td class="p-6">
-                                        <div class="text-gray-300 font-bold tracking-tight text-sm">{{ $row->dudi->nama ?? '-' }}</div>
-                                        <div class="text-[10px] text-gray-600 font-medium italic truncate max-w-[200px] mt-0.5">{{ $row->dudi->alamat ?? '-' }}</div>
-                                    </td>
-                                    <td class="p-6">
-                                        <div class="text-xs font-black text-gray-500 tracking-tighter uppercase flex flex-col">
-                                            @if($row->tanggal_mulai)
-                                                <span class="text-gray-400">{{ \Carbon\Carbon::parse($row->tanggal_mulai)->format('d M Y') }}</span>
-                                                <span class="text-[9px] text-gray-600 mt-0.5 opacity-50">&rarr; {{ $row->tanggal_selesai ? \Carbon\Carbon::parse($row->tanggal_selesai)->format('M Y') : 'Hingga Selesai' }}</span>
-                                            @else
-                                                Kontrak Tahunan
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td class="p-6 text-center">
-                                        <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-gray-950 border border-gray-800 rounded-xl group-hover:border-cyan-500/40 transition-all">
-                                            <div class="w-1.5 h-1.5 rounded-full 
-                                                @if($row->status == 'Aktif') bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]
-                                                @elseif($row->status == 'Selesai') bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]
-                                                @else bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.6)] @endif"></div>
-                                            <span class="text-[10px] font-black uppercase tracking-widest leading-none
-                                                @if($row->status == 'Aktif') text-green-400
-                                                @elseif($row->status == 'Selesai') text-blue-400
-                                                @else text-yellow-500 @endif">
-                                                {{ $row->status }}
-                                            </span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
+                                        <div class="font-bold text-gray-200">{{ $row->siswa->nama ?? '-' }}</div>
+                                    </div>
+                                </td>
+                                <td class="p-6 text-gray-400 font-medium">{{ $row->dudi->nama ?? '-' }}</td>
+                                <td class="p-6 text-center">
+                                    <span class="px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-[9px] font-black uppercase border border-green-500/20">
+                                        {{ $row->status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="3" class="p-10 text-center text-gray-600 font-black uppercase text-xs">Belum ada aktivitas</td></tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
-        @endif
+        </div>
+
+        <!-- Right Side: Siswa Baru Terdaftar -->
+        <div class="xl:col-span-1">
+            <div class="bg-gray-900 border border-gray-800 rounded-[2.5rem] shadow-2xl p-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                        <i class="fas fa-user-plus text-blue-500"></i> Siswa Baru
+                    </h2>
+                    <a href="{{ route('guru.siswa') }}" class="text-[9px] font-black text-gray-500 uppercase tracking-widest hover:text-white">Kelola &rarr;</a>
+                </div>
+
+                <div class="space-y-4">
+                    @forelse($latestSiswas as $ls)
+                    <div class="flex items-center gap-4 p-4 bg-gray-950/50 border border-gray-800 rounded-2xl hover:border-blue-500/30 transition-all duration-300 group">
+                        <div class="w-12 h-12 bg-gray-900 border border-gray-800 rounded-xl flex items-center justify-center text-blue-400 font-black group-hover:bg-blue-600 group-hover:text-white transition-all">
+                            {{ substr($ls->nama, 0, 1) }}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-black text-white truncate">{{ $ls->nama }}</h4>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{{ $ls->kelas->nama ?? 'No Class' }}</p>
+                        </div>
+                        <div class="text-[9px] font-black text-gray-600 uppercase tracking-widest">
+                            {{ $ls->created_at->diffForHumans() }}
+                        </div>
+                    </div>
+                    @empty
+                    <p class="text-center text-gray-600 font-black uppercase text-xs py-10">Belum ada siswa</p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
