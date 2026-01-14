@@ -3,10 +3,10 @@
 @section('title', 'Logbook - Guru')
 
 @section('content')
-<div class="p-6">
+<div class="p-4 md:p-8">
     <div class="mb-10">
-        <h1 class="text-3xl font-black text-white uppercase tracking-tighter">Verifikasi Logbook</h1>
-        <p class="text-gray-400">Tinjau dan berikan feedback pada laporan harian siswa</p>
+        <h1 class="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter leading-tight">Verifikasi Logbook</h1>
+        <p class="text-gray-400 font-medium text-sm">Tinjau dan berikan feedback pada laporan harian siswa</p>
     </div>
 
     <div class="grid grid-cols-1 gap-6">

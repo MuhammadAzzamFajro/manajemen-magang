@@ -133,7 +133,7 @@ class DashboardController extends Controller
 
     public function guruLogbook()
     {
-        $logbooks = logbook::with('siswa')->latest()->get();
+        $logbooks = logbook::with(['siswa.user', 'siswa.kelas'])->latest()->get();
         return view('dashboard.guru.logbook', compact('logbooks'));
     }
 

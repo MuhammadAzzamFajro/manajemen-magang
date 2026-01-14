@@ -8,28 +8,49 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Tailwind CSS & Alpine.js CDN -->
-    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <!-- Tailwind CSS (Stable v3) & Alpine.js -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        outfit: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        gray: {
+                            950: '#030712',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <style>
         [x-cloak] { display: none !important; }
+        * { font-display: swap; }
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Outfit', sans-serif;
             scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
         }
         .page-enter {
-            animation: fadeIn 0.4s ease-out;
+            animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
         }
+        /* Performance optimization: hardware acceleration */
+        .will-change-transform { will-change: transform; }
     </style>
 </head>
 <body class="font-sans antialiased bg-gray-900 text-white" x-data="{ showSwitchModal: false, switchRoleLabel: '', sidebarOpen: false }">
