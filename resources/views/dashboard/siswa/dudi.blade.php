@@ -3,16 +3,16 @@
 @section('title', 'Eksplorasi DUDI - Siswa')
 
 @section('content')
-<div class="p-6" x-data="{ selectedDudi: null }">
+<div class="p-6" x-data="{ selectedDudi: null, category: 'Semua' }">
     <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
             <h1 class="text-4xl font-black text-white uppercase tracking-tighter">Eksplorasi Mitra</h1>
             <p class="text-gray-400 mt-2 font-medium">Temukan tempat magang impian Anda di industri terbaik</p>
         </div>
         <div class="flex gap-2 bg-gray-900 p-2 rounded-2xl border border-gray-700">
-            <button class="px-6 py-2.5 bg-cyan-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-cyan-600/20 transition-all">Semua</button>
-            <button class="px-6 py-2.5 text-gray-500 hover:text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all">Populer</button>
-            <button class="px-6 py-2.5 text-gray-500 hover:text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all">Terdekat</button>
+            <button @click="category = 'Semua'" :class="category === 'Semua' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-white'" class="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all">Semua</button>
+            <button @click="category = 'Populer'" :class="category === 'Populer' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-white'" class="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all">Populer</button>
+            <button @click="category = 'Terdekat'" :class="category === 'Terdekat' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-white'" class="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all">Terdekat</button>
         </div>
     </div>
 
@@ -109,7 +109,11 @@
 
                     <div class="flex gap-4">
                         <button class="flex-1 py-5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-[1.5rem] font-black uppercase tracking-widest transition-all" @click="selectedDudi = null">Kembali</button>
-                        <button class="flex-1 py-5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-[1.5rem] font-black uppercase tracking-widest shadow-2xl shadow-cyan-600/30 hover:scale-[1.03] transition-all" @click="alert('Segera hubungi Guru Pembimbing untuk proses pendaftaran ke mitra ini!')">Daftar Magang</button>
+                        <form action="{{ route('siswa.magang.apply') }}" method="POST" class="flex-1">
+                            @csrf
+                            <input type="hidden" name="dudi_id" :value="selectedDudi.id">
+                            <button type="submit" class="w-full py-5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-[1.5rem] font-black uppercase tracking-widest shadow-2xl shadow-cyan-600/30 hover:scale-[1.03] transition-all">Daftar Magang</button>
+                        </form>
                     </div>
                 </div>
             </div>

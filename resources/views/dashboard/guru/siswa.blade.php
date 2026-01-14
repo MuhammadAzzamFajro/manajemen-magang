@@ -46,12 +46,16 @@
                     <td class="p-6 text-gray-400 italic text-xs">{{ $s->user->email ?? '-' }}</td>
                     <td class="p-6">
                         <div class="flex items-center justify-center gap-2">
-                            <button class="w-10 h-10 flex items-center justify-center bg-gray-800 text-gray-400 rounded-xl hover:bg-blue-600 hover:text-white transition">
+                            <button class="w-10 h-10 flex items-center justify-center bg-gray-800 text-gray-400 rounded-xl hover:bg-blue-600 hover:text-white transition cursor-not-allowed opacity-50">
                                 <i class="fas fa-edit text-xs"></i>
                             </button>
-                            <button class="w-10 h-10 flex items-center justify-center bg-gray-800 text-gray-400 rounded-xl hover:bg-red-600 hover:text-white transition">
-                                <i class="fas fa-trash text-xs"></i>
-                            </button>
+                            <form action="{{ route('guru.siswa.destroy', $s) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus siswa dan akun terkait?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="w-10 h-10 flex items-center justify-center bg-gray-800 text-gray-400 rounded-xl hover:bg-red-600 hover:text-white transition">
+                                    <i class="fas fa-trash text-xs"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>

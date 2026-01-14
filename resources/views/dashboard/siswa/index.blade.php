@@ -44,13 +44,19 @@
                 <div class="w-14 h-14 bg-green-600/20 rounded-2xl flex items-center justify-center text-green-500 group-hover:bg-green-600 group-hover:text-white transition-all duration-500">
                     <i class="fas fa-file-invoice text-2xl"></i>
                 </div>
-                <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Progress</span>
+                <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Progress Jurnal</span>
             </div>
-            <h3 class="text-4xl font-black text-white mb-2">{{ $logbookCount }} <span class="text-sm font-bold text-gray-600 uppercase">Hari</span></h3>
-            <p class="text-green-400 text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                {{ $approvedLogbook }} Disetujui
-            </p>
+            <h3 class="text-4xl font-black text-white mb-2">{{ $logbookCount }} <span class="text-sm font-bold text-gray-600 uppercase">Total</span></h3>
+            <div class="flex flex-col gap-1">
+                <p class="text-green-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                    {{ $approvedLogbook }} Disetujui
+                </p>
+                <p class="text-yellow-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span>
+                    {{ $pendingLogbook }} Menunggu Verifikasi
+                </p>
+            </div>
         </div>
 
         <div class="group bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] shadow-2xl hover:border-yellow-500/50 transition-all duration-500 hover:scale-[1.02] lg:col-span-1 md:col-span-2 lg:col-span-1">

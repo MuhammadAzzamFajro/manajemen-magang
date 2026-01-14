@@ -10,15 +10,26 @@
             <p class="text-gray-400 font-medium italic text-sm md:text-base">"SMK Negeri 1 Surabaya &bull; Mitra Industri Hub"</p>
         </div>
         
-        <div class="flex gap-2 bg-gray-900/80 p-2 rounded-2xl border border-gray-700 backdrop-blur-sm w-full lg:w-fit group">
-            <button @click="showSwitchModal = true; switchRoleLabel = 'Siswa'" 
-               class="flex-1 lg:flex-none px-6 md:px-8 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 transform hover:scale-[1.05] {{ Request::routeIs('dashboard.siswa') ? 'bg-cyan-500 text-white shadow-xl shadow-cyan-500/20' : 'text-gray-500 hover:text-white hover:bg-gray-800' }}">
-                <i class="fas fa-user-graduate mr-2"></i> View Siswa
-            </button>
-            <a href="{{ route('dashboard.guru') }}" 
-               class="flex-1 lg:flex-none px-6 md:px-8 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 transform hover:scale-[1.05] {{ Request::routeIs('dashboard.guru') ? 'bg-cyan-500 text-white shadow-xl shadow-cyan-500/20' : 'text-gray-500 hover:text-white hover:bg-gray-800' }}">
-                <i class="fas fa-chalkboard-teacher mr-2"></i> View Guru
-            </a>
+        <div class="flex flex-col sm:flex-row gap-4">
+            @if($stats['pendingLogbook'] > 0 || $stats['pendingMagang'] > 0)
+                <div class="flex items-center gap-4 bg-orange-500/10 border border-orange-500/30 px-6 py-3 rounded-2xl animate-pulse">
+                    <i class="fas fa-exclamation-triangle text-orange-500"></i>
+                    <p class="text-xs font-black text-orange-400 uppercase tracking-widest">
+                        Perhatian: Ada {{ $stats['pendingLogbook'] + $stats['pendingMagang'] }} permintaan baru!
+                    </p>
+                </div>
+            @endif
+            
+            <div class="flex gap-2 bg-gray-900/80 p-2 rounded-2xl border border-gray-700 backdrop-blur-sm w-full lg:w-fit group">
+                <button @click="showSwitchModal = true; switchRoleLabel = 'Siswa'" 
+                   class="flex-1 lg:flex-none px-6 md:px-8 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 transform hover:scale-[1.05] {{ Request::routeIs('dashboard.siswa') ? 'bg-cyan-500 text-white shadow-xl shadow-cyan-500/20' : 'text-gray-500 hover:text-white hover:bg-gray-800' }}">
+                    <i class="fas fa-user-graduate mr-2"></i> View Siswa
+                </button>
+                <a href="{{ route('dashboard.guru') }}" 
+                   class="flex-1 lg:flex-none px-6 md:px-8 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 transform hover:scale-[1.05] {{ Request::routeIs('dashboard.guru') ? 'bg-cyan-500 text-white shadow-xl shadow-cyan-500/20' : 'text-gray-500 hover:text-white hover:bg-gray-800' }}">
+                    <i class="fas fa-chalkboard-teacher mr-2"></i> View Guru
+                </a>
+            </div>
         </div>
     </div>
 

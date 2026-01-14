@@ -20,6 +20,8 @@ class DashboardController extends Controller
             'totalDudi' => Dudi::count(),
             'totalMagang' => Magang::count(),
             'totalLogbook' => logbook::count(),
+            'pendingLogbook' => logbook::where('status', 'Menunggu')->count(),
+            'pendingMagang' => Magang::where('status', 'Pending')->count(),
         ];
 
         $magangs = Magang::with(['siswa', 'dudi'])
@@ -47,11 +49,15 @@ class DashboardController extends Controller
 
         $logbookCount = logbook::where('siswa_id', $siswa->id ?? 0)->count();
         $approvedLogbook = logbook::where('siswa_id', $siswa->id ?? 0)->where('status', 'Setuju')->count();
+        $pendingLogbook = logbook::where('siswa_id', $siswa->id ?? 0)->where('status', 'Menunggu')->count();
+        $rejectedLogbook = logbook::where('siswa_id', $siswa->id ?? 0)->where('status', 'Tolak')->count();
 
         return view('dashboard.siswa.index', [
             'namaSiswa' => $namaSiswa,
             'logbookCount' => $logbookCount,
             'approvedLogbook' => $approvedLogbook,
+            'pendingLogbook' => $pendingLogbook,
+            'rejectedLogbook' => $rejectedLogbook,
             'presentRate' => 98,
             'grade' => 'A-',
             'siswa' => $siswa
@@ -92,6 +98,16 @@ class DashboardController extends Controller
         ]);
 
         return back()->with('success', 'Siswa berhasil ditambahkan. Password default: password123');
+    }
+
+    public function destroySiswa(Siswa $siswa)
+    {
+        // Delete associated user first
+        if ($siswa->user) {
+            $siswa->user->delete();
+        }
+        $siswa->delete();
+        return back()->with('success', 'Data siswa dan akun berhasil dihapus');
     }
 
     public function guruDudi()
@@ -174,8 +190,12 @@ class DashboardController extends Controller
     {
         $siswa = $this->getLoggedInSiswa();
         
+        if (!$siswa) {
+            return back()->with('error', 'Akun Anda tidak terhubung dengan data Siswa. Silakan hubungi admin.');
+        }
+        
         logbook::create([
-            'siswa_id' => $siswa->id ?? 1,
+            'siswa_id' => $siswa->id,
             'tanggal' => $request->tanggal ?? now(),
             'kegiatan' => $request->kegiatan,
             'deskripsi' => $request->deskripsi,
@@ -183,6 +203,39 @@ class DashboardController extends Controller
         ]);
 
         return back()->with('success', 'Logbook berhasil dikirim');
+    }
+
+    public function storeApplication(Request $request)
+    {
+        $siswa = $this->getLoggedInSiswa();
+        
+        if (!$siswa) {
+            return back()->with('error', 'Akun Anda tidak terhubung dengan data Siswa.');
+        }
+
+        $request->validate([
+            'dudi_id' => 'required|exists:dudis,id',
+        ]);
+
+        // Check if already applied
+        $exists = Magang::where('siswa_id', $siswa->id)
+            ->where('dudi_id', $request->dudi_id)
+            ->exists();
+
+        if ($exists) {
+            return back()->with('error', 'Anda sudah mengajukan magang di tempat ini.');
+        }
+
+        Magang::create([
+            'siswa_id' => $siswa->id,
+            'dudi_id' => $request->dudi_id,
+            'judul_magang' => 'Pengajuan Mandiri',
+            'tanggal_mulai' => now(),
+            'status' => 'Pending',
+            'deskripsi' => 'Pengajuan magang mandiri dari siswa.',
+        ]);
+
+        return back()->with('success', 'Pengajuan magang berhasil dikirim. Menunggu verifikasi guru.');
     }
 
     public function verifyLogbook(logbook $logbook, Request $request)
