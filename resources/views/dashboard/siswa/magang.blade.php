@@ -10,20 +10,20 @@
     </div>
 
     @forelse($magangs as $magang)
-    <div class="bg-gray-800 border-l-8 border-cyan-500 rounded-3xl p-10 mb-8 relative overflow-hidden shadow-2xl">
+    <div class="bg-gray-800 border-l-8 border-cyan-500 rounded-[2rem] md:rounded-3xl p-6 md:p-10 mb-8 relative overflow-hidden shadow-2xl">
         <div class="absolute right-0 top-0 opacity-5 -rotate-12 translate-x-10 -translate-y-10 pointer-events-none">
-            <i class="fas fa-briefcase text-[15rem]"></i>
+            <i class="fas fa-briefcase text-[10rem] md:text-[15rem]"></i>
         </div>
         
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12 items-center">
             <div class="lg:col-span-2">
                 <div class="flex items-center gap-3 mb-6">
                     <span class="px-4 py-1.5 bg-cyan-500/20 text-cyan-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-cyan-500/30">{{ $magang->status }}</span>
-                    <span class="text-gray-600 font-bold text-xs uppercase tracking-widest">ID: #MGN-2024-{{ $magang->id }}</span>
+                    <span class="text-gray-600 font-bold text-[10px] md:text-xs uppercase tracking-widest">ID: #MGN-{{ $magang->id }}</span>
                 </div>
                 
-                <h2 class="text-5xl font-black text-white mb-4 leading-none tracking-tighter">{{ $magang->dudi->nama ?? '-' }}</h2>
-                <h3 class="text-2xl text-cyan-500 font-bold mb-8 italic">"{{ $magang->judul_magang ?? 'Posisi Magang' }}"</h3>
+                <h2 class="text-3xl md:text-5xl font-black text-white mb-3 md:mb-4 leading-none tracking-tighter">{{ $magang->dudi->nama ?? '-' }}</h2>
+                <h3 class="text-lg md:text-2xl text-cyan-500 font-bold mb-6 md:mb-8 italic">"{{ $magang->judul_magang ?? 'Posisi Magang' }}"</h3>
                 
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
                     <div class="bg-gray-900/40 p-5 rounded-2xl border border-gray-700/50">
