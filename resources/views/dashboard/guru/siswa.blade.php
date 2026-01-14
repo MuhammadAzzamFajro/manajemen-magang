@@ -3,19 +3,20 @@
 @section('title', 'Data Siswa - Guru')
 
 @section('content')
-<div class="p-6" x-data="{ showModal: false }">
-    <div class="flex justify-between items-center mb-10">
+<div class="p-4 md:p-8" x-data="{ showModal: false }">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
         <div>
-            <h1 class="text-3xl font-black text-white uppercase tracking-tighter">Manajemen Siswa</h1>
-            <p class="text-gray-400 mt-1 font-medium">Kelola data siswa peserta magang</p>
+            <h1 class="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter">Manajemen Siswa</h1>
+            <p class="text-gray-400 mt-1 font-medium text-sm">Kelola data siswa peserta magang</p>
         </div>
-        <button class="px-8 py-4 bg-blue-600 text-white rounded-[1.5rem] font-black uppercase tracking-widest hover:bg-blue-500 transition shadow-2xl shadow-blue-600/40 hover:scale-[1.02] active:scale-95 flex items-center gap-2" @click="showModal = true">
+        <button class="w-full md:w-auto px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-blue-500 transition shadow-2xl shadow-blue-600/40 flex items-center justify-center gap-2" @click="showModal = true">
             <i class="fas fa-plus-circle"></i> Tambah Siswa
         </button>
     </div>
 
-    <div class="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-[3rem] overflow-hidden shadow-2xl">
-        <table class="w-full text-left text-sm text-gray-300">
+    <div class="overflow-x-auto bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-3xl shadow-2xl">
+        <div class="min-w-[800px]">
+            <table class="w-full text-left text-sm text-gray-300">
             <thead class="bg-gray-800/80 text-gray-400 uppercase text-[10px] font-black tracking-widest">
                 <tr>
                     <th class="p-6">Identitas Siswa</th>

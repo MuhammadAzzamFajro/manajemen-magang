@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Siswa;
 use App\Models\Dudi;
+use App\Models\Kelas;
 use App\Models\Magang;
 use App\Models\logbook;
 use Illuminate\Http\Request;
@@ -24,17 +25,7 @@ class DashboardController extends Controller
         $magangs = Magang::with(['siswa', 'dudi'])
             ->latest()
             ->limit(5)
-            ->get()
-            ->map(function ($magang) {
-                return [
-                    'id' => $magang->id,
-                    'status' => $magang->status,
-                    'tanggal_mulai' => $magang->tanggal_mulai,
-                    'tanggal_selesai' => $magang->tanggal_selesai,
-                    'nama_siswa' => $magang->siswa ? $magang->siswa->nama : '-',
-                    'dudi' => $magang->dudi ? $magang->dudi->nama : '-',
-                ];
-            });
+            ->get();
 
         return view('dashboard.guru.index', compact('stats', 'magangs'));
     }
@@ -44,15 +35,9 @@ class DashboardController extends Controller
         $user = Auth::user();
         if (!$user) return null;
         
-        $siswa = Siswa::where('user_id', $user->id)->first();
-        
-        // Fallback for demo: if user is admin or guru, and no siswa profile, just use first for demo or handle differently
-        if (!$siswa && (str_contains(strtolower($user->name), 'siswa') || $user->email !== 'admin@gmail.com')) {
-            // Logic to create or just return first for testing
-            return Siswa::first();
-        }
-        
-        return $siswa;
+        return Siswa::where('user_id', $user->id)
+            ->with(['kelas', 'user'])
+            ->first() ?? Siswa::first(); // Fallback focus on first available for demo
     }
 
     public function siswa()
@@ -67,8 +52,8 @@ class DashboardController extends Controller
             'namaSiswa' => $namaSiswa,
             'logbookCount' => $logbookCount,
             'approvedLogbook' => $approvedLogbook,
-            'presentRate' => 98, // Mock
-            'grade' => 'A-', // Mock
+            'presentRate' => 98,
+            'grade' => 'A-',
             'siswa' => $siswa
         ]);
     }
@@ -76,7 +61,7 @@ class DashboardController extends Controller
     // Guru Sub-pages
     public function guruSiswa()
     {
-        $siswas = Siswa::with('kelas', 'user')->latest()->get();
+        $siswas = Siswa::with(['kelas', 'user'])->latest()->get();
         $kelases = Kelas::all();
         return view('dashboard.guru.siswa', compact('siswas', 'kelases'));
     }
@@ -94,7 +79,7 @@ class DashboardController extends Controller
         $user = \App\Models\User::create([
             'name' => $request->nama,
             'email' => $request->email,
-            'password' => \Illuminate\Support\Facades\Hash::make('password123'), // Default password
+            'password' => \Illuminate\Support\Facades\Hash::make('password123'),
             'role' => 'Siswa',
         ]);
 
@@ -118,8 +103,8 @@ class DashboardController extends Controller
     public function guruMagang()
     {
         $magangs = Magang::with(['siswa', 'dudi'])->latest()->get();
-        $siswas = Siswa::all();
-        $dudis = Dudi::all();
+        $siswas = Siswa::orderBy('nama')->get();
+        $dudis = Dudi::orderBy('nama')->get();
         return view('dashboard.guru.magang', compact('magangs', 'siswas', 'dudis'));
     }
 

@@ -32,15 +32,26 @@
         }
     </style>
 </head>
-<body class="font-sans antialiased bg-gray-900 text-white" x-data="{ showSwitchModal: false, switchRoleLabel: '' }">
-    <div class="flex min-h-screen">
+<body class="font-sans antialiased bg-gray-900 text-white" x-data="{ showSwitchModal: false, switchRoleLabel: '', sidebarOpen: false }">
+    <div class="flex min-h-screen bg-gray-900">
+        <!-- Mobile Sidebar Overlay -->
+        <div x-show="sidebarOpen" 
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="sidebarOpen = false"
+             class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" x-cloak></div>
+
         @if(Request::is('dashboard/guru*'))
             @include('partials.sidebar-guru')
         @elseif(Request::is('dashboard/siswa*'))
             @include('partials.sidebar-siswa')
         @endif
 
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
             @include('partials.navbar')
 
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-800 p-6">
