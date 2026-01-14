@@ -37,7 +37,7 @@ class DashboardController extends Controller
         
         return Siswa::where('user_id', $user->id)
             ->with(['kelas', 'user'])
-            ->first() ?? Siswa::first(); // Fallback focus on first available for demo
+            ->first();
     }
 
     public function siswa()
