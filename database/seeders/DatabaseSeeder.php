@@ -32,7 +32,11 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 3. Setup Kelas
-        $kelas = Kelas::factory()->count(5)->create();
+        $kelasNames = ['XII RPL 1', 'XII RPL 2', 'XII TKJ 1', 'XII SIJA 1', 'XII MM 1'];
+        $kelas = collect();
+        foreach($kelasNames as $name) {
+            $kelas->push(Kelas::updateOrCreate(['nama' => $name]));
+        }
         
         // 4. Buat Profil Siswa untuk User Demo
         $demoSiswa = Siswa::updateOrCreate(['user_id' => $studentUser->id], [
@@ -42,14 +46,30 @@ class DatabaseSeeder extends Seeder
             'alamat' => 'Jl. Merdeka No. 1, Surabaya',
         ]);
 
-        // 5. Seed DUDI
-        $seededDudis = Dudi::factory()->count(15)->create();
+        // 5. Seed DUDI with Real Names
+        $dudiNames = [
+            'PT Global Teknologi Nusantara', 'Google Cloud Indonesia', 'Bukalapak Head Office',
+            'PT Telkom Indonesia', 'Startup Digital Hub', 'Kementerian Kominfo',
+            'PT Multimedia Kreatif', 'UBIG Studio', 'Nokia Indonesia',
+            'PT PLN (Persero)', 'Pertamina IT Division', 'Shopee International Indonesia',
+            'Gojek Indonesia', 'Traveloka Tech', 'Tokopedia Academy'
+        ];
+
+        foreach($dudiNames as $dudiName) {
+            Dudi::updateOrCreate(['nama' => $dudiName], [
+                'alamat' => 'Gedung Cyber 2, Jl. HR. Rasuna Said, Jakarta',
+                'pimpinan' => 'Bp. Budi Santoso',
+                'telepon' => '021-555' . rand(100, 999),
+                'email_kontak' => strtolower(str_replace(' ', '.', $dudiName)) . '@company.com',
+            ]);
+        }
+
+        $seededDudis = Dudi::all();
         
         // 6. Seed Magang untuk Siswa Demo
         $guruId = User::where('email', 'admin@gmail.com')->first()->id;
         
-        Magang::create([
-            'siswa_id' => $demoSiswa->id,
+        Magang::updateOrCreate(['siswa_id' => $demoSiswa->id], [
             'dudi_id' => $seededDudis->random()->id,
             'guru_pembimbing_id' => $guruId,
             'judul_magang' => 'Web Developer Intern',
@@ -59,14 +79,16 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 7. Seed Logbooks untuk siswa demo
-        logbook::factory()->count(10)->create([
-            'siswa_id' => $demoSiswa->id,
-            'status' => 'Setuju'
-        ]);
+        if (logbook::where('siswa_id', $demoSiswa->id)->count() == 0) {
+            logbook::factory()->count(10)->create([
+                'siswa_id' => $demoSiswa->id,
+                'status' => 'Setuju'
+            ]);
 
-        logbook::factory()->count(3)->create([
-            'siswa_id' => $demoSiswa->id,
-            'status' => 'Menunggu'
-        ]);
+            logbook::factory()->count(3)->create([
+                'siswa_id' => $demoSiswa->id,
+                'status' => 'Menunggu'
+            ]);
+        }
     }
 }

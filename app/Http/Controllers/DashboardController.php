@@ -18,7 +18,7 @@ class DashboardController extends Controller
         $stats = [
             'totalSiswa' => Siswa::count(),
             'totalDudi' => Dudi::count(),
-            'totalMagang' => Magang::count(),
+            'totalMagang' => Magang::where('status', 'Aktif')->count(),
             'totalLogbook' => logbook::count(),
             'pendingLogbook' => logbook::where('status', 'Menunggu')->count(),
             'pendingMagang' => Magang::where('status', 'Pending')->count(),
@@ -37,9 +37,27 @@ class DashboardController extends Controller
         $user = Auth::user();
         if (!$user) return null;
         
-        return Siswa::where('user_id', $user->id)
+        $siswa = Siswa::where('user_id', $user->id)
             ->with(['kelas', 'user'])
             ->first();
+
+        // Fix for "novtu" and others: Auto-create Siswa profile if role is Siswa
+        if (!$siswa && $user->role === 'Siswa') {
+            // Get or create a default class
+            $kelas = Kelas::first() ?? Kelas::create(['nama' => 'XII RPL 1']);
+            
+            $siswa = Siswa::create([
+                'user_id' => $user->id,
+                'nis' => 'NIS-' . str_pad($user->id, 5, '0', STR_PAD_LEFT),
+                'nama' => $user->name,
+                'kelas_id' => $kelas->id,
+                'alamat' => 'Belum diisi',
+            ]);
+            
+            $siswa->load(['kelas', 'user']);
+        }
+
+        return $siswa;
     }
 
     public function siswa()

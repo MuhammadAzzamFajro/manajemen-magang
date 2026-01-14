@@ -4,30 +4,34 @@
 
 @section('content')
 <div class="p-4 md:p-8 text-white min-h-screen">
-    <div class="mb-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div>
-            <h1 class="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none mb-2">Panel Monitoring</h1>
-            <p class="text-gray-400 font-medium italic text-sm md:text-base">"SMK Negeri 1 Surabaya &bull; Mitra Industri Hub"</p>
+    <!-- Header Section -->
+    <div class="mb-10 flex flex-col xl:flex-row xl:items-start justify-between gap-8">
+        <div class="flex-1">
+            <h1 class="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none mb-4 bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent">Panel Monitoring</h1>
+            <p class="text-gray-400 font-medium italic text-base md:text-lg opacity-80 max-w-2xl">"SMK Negeri 1 Surabaya &bull; Pusat Unggulan & Mitra Industri Digital Hub"</p>
         </div>
         
-        <div class="flex flex-col sm:flex-row gap-4">
+        <div class="flex flex-col sm:flex-row items-stretch lg:items-center gap-4 shrink-0">
             @if($stats['pendingLogbook'] > 0 || $stats['pendingMagang'] > 0)
-                <div class="flex items-center gap-4 bg-orange-500/10 border border-orange-500/30 px-6 py-3 rounded-2xl animate-pulse">
-                    <i class="fas fa-exclamation-triangle text-orange-500"></i>
-                    <p class="text-xs font-black text-orange-400 uppercase tracking-widest">
-                        Perhatian: Ada {{ $stats['pendingLogbook'] + $stats['pendingMagang'] }} permintaan baru!
-                    </p>
-                </div>
+                <a href="{{ route('guru.logbook') }}" class="flex items-center gap-4 bg-orange-600/20 border border-orange-500/40 px-6 py-4 rounded-3xl animate-pulse hover:bg-orange-600/30 transition">
+                    <div class="w-10 h-10 bg-orange-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/40">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-orange-400 uppercase tracking-widest leading-none mb-1">Permintaan Baru</p>
+                        <p class="text-sm font-bold text-white">{{ $stats['pendingLogbook'] + $stats['pendingMagang'] }} Item Perlu Validasi</p>
+                    </div>
+                </a>
             @endif
             
-            <div class="flex gap-2 bg-gray-900/80 p-2 rounded-2xl border border-gray-700 backdrop-blur-sm w-full lg:w-fit group">
+            <div class="flex gap-2 bg-gray-950 p-2 rounded-[2rem] border border-gray-800 backdrop-blur-md shadow-2xl">
                 <button @click="showSwitchModal = true; switchRoleLabel = 'Siswa'" 
-                   class="flex-1 lg:flex-none px-6 md:px-8 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 transform hover:scale-[1.05] {{ Request::routeIs('dashboard.siswa') ? 'bg-cyan-500 text-white shadow-xl shadow-cyan-500/20' : 'text-gray-500 hover:text-white hover:bg-gray-800' }}">
-                    <i class="fas fa-user-graduate mr-2"></i> View Siswa
+                   class="px-6 py-3.5 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 hover:bg-gray-800 text-gray-500 hover:text-white">
+                    <i class="fas fa-user-graduate mr-2"></i> Siswa
                 </button>
                 <a href="{{ route('dashboard.guru') }}" 
-                   class="flex-1 lg:flex-none px-6 md:px-8 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 transform hover:scale-[1.05] {{ Request::routeIs('dashboard.guru') ? 'bg-cyan-500 text-white shadow-xl shadow-cyan-500/20' : 'text-gray-500 hover:text-white hover:bg-gray-800' }}">
-                    <i class="fas fa-chalkboard-teacher mr-2"></i> View Guru
+                   class="px-6 py-3.5 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 bg-blue-600 text-white shadow-xl shadow-blue-600/30">
+                    <i class="fas fa-chalkboard-teacher mr-2"></i> Guru
                 </a>
             </div>
         </div>
