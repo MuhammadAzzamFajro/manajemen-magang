@@ -33,6 +33,7 @@ Route::middleware(['auth'])->group(function () {
         
         Route::get('/magang', [DashboardController::class, 'guruMagang'])->name('magang');
         Route::post('/magang', [DashboardController::class, 'storeMagang'])->name('magang.store');
+        Route::post('/magang/{magang}/verify', [DashboardController::class, 'verifyMagang'])->name('magang.verify');
         
         Route::get('/logbook', [DashboardController::class, 'guruLogbook'])->name('logbook');
         Route::post('/logbook/{logbook}/verify', [DashboardController::class, 'verifyLogbook'])->name('logbook.verify');

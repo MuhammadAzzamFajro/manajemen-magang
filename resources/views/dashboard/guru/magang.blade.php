@@ -30,27 +30,47 @@
                 @forelse($magangs as $magang)
                 <tr class="hover:bg-gray-800/50 transition">
                     <td class="p-4">
-                        <div class="text-white font-medium">{{ $magang->siswa->nama ?? '-' }}</div>
-                        <div class="text-xs text-gray-500">{{ $magang->siswa->nis ?? '-' }}</div>
+                        <div class="text-white font-black group-hover:text-cyan-400 transition">{{ $magang->siswa->nama ?? 'Siswa' }}</div>
+                        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{{ $magang->siswa->nis ?? '-' }}</div>
                     </td>
-                    <td class="p-4">{{ $magang->dudi->nama ?? '-' }}</td>
                     <td class="p-4">
-                        <span class="px-2 py-1 rounded-full text-xs font-semibold 
-                            @if($magang->status == 'Aktif') bg-green-500/20 text-green-400
-                            @elseif($magang->status == 'Selesai') bg-blue-500/20 text-blue-400
-                            @else bg-yellow-500/20 text-yellow-400 @endif">
+                        <div class="text-white font-bold">{{ $magang->dudi->nama ?? '-' }}</div>
+                        <div class="text-[10px] text-gray-500 italic">{{ $magang->judul_magang }}</div>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest
+                            @if($magang->status == 'Aktif') bg-green-500/10 text-green-400 border border-green-500/20
+                            @elseif($magang->status == 'Selesai') bg-blue-500/10 text-blue-400 border border-blue-500/20
+                            @elseif($magang->status == 'Pending') bg-orange-500/10 text-orange-400 border border-orange-500/20 animate-pulse
+                            @else bg-red-500/10 text-red-500 border border-red-500/20 @endif">
                             {{ $magang->status }}
                         </span>
                     </td>
                     <td class="p-4">
-                        {{ $magang->tanggal_mulai ? \Carbon\Carbon::parse($magang->tanggal_mulai)->format('d M Y') : '-' }} - 
-                        {{ $magang->tanggal_selesai ? \Carbon\Carbon::parse($magang->tanggal_selesai)->format('d M Y') : 'Sekarang' }}
+                        <div class="text-xs font-medium text-gray-400">
+                            {{ $magang->tanggal_mulai ? \Carbon\Carbon::parse($magang->tanggal_mulai)->format('d M Y') : '-' }}
+                        </div>
                     </td>
                     <td class="p-4">
-                        <button class="text-cyan-400 hover:text-cyan-300 font-bold" 
-                                @click="selectedMagang = {{ json_encode($magang) }}">
-                            Detail
-                        </button>
+                        <div class="flex items-center gap-2">
+                            @if($magang->status == 'Pending')
+                                <form action="{{ route('guru.magang.verify', $magang) }}" method="POST" class="inline">
+                                    @csrf
+                                    <input type="hidden" name="status" value="Setuju">
+                                    <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition shadow-lg shadow-green-600/20">Setujui</button>
+                                </form>
+                                <form action="{{ route('guru.magang.verify', $magang) }}" method="POST" class="inline">
+                                    @csrf
+                                    <input type="hidden" name="status" value="Tolak">
+                                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition shadow-lg shadow-red-600/20">Tolak</button>
+                                </form>
+                            @else
+                                <button class="text-cyan-400 hover:text-cyan-300 font-black uppercase text-[10px] tracking-widest" 
+                                        @click="selectedMagang = {{ json_encode($magang) }}">
+                                    Detail
+                                </button>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @empty

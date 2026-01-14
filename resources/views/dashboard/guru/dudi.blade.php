@@ -102,11 +102,11 @@
                     </button>
                 </div>
 
-                <form :action="editingDudi ? `/dashboard/guru/dudis/${editingDudi.id}` : '{{ route('guru.dudis.store') }}'" method="POST" class="space-y-6">
+                <form :action="editingDudi ? '{{ url('dashboard/guru/dudis') }}/' + editingDudi.id : '{{ route('guru.dudis.store') }}'" method="POST" class="space-y-6">
                     @csrf
-                    <div x-show="editingDudi">
+                    <template x-if="editingDudi">
                         <input type="hidden" name="_method" value="PUT">
-                    </div>
+                    </template>
 
                     <div class="space-y-4">
                         <div>

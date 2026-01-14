@@ -67,6 +67,13 @@ class DashboardController extends Controller
     // Guru Sub-pages
     public function guruSiswa()
     {
+        // Auto-seed classes if empty for easier testing
+        if (Kelas::count() == 0) {
+            Kelas::create(['nama' => 'XII RPL 1']);
+            Kelas::create(['nama' => 'XII RPL 2']);
+            Kelas::create(['nama' => 'XII TKJ 1']);
+        }
+        
         $siswas = Siswa::with(['kelas', 'user'])->latest()->get();
         $kelases = Kelas::all();
         return view('dashboard.guru.siswa', compact('siswas', 'kelases'));
@@ -247,6 +254,15 @@ class DashboardController extends Controller
         ]);
 
         return back()->with('success', 'Logbook diverifikasi: ' . $request->status);
+    }
+
+    public function verifyMagang(Magang $magang, Request $request)
+    {
+        $magang->update([
+            'status' => $request->status === 'Setuju' ? 'Aktif' : 'Tolak',
+        ]);
+
+        return back()->with('success', 'Status pengajuan magang diupdate menjadi: ' . $magang->status);
     }
 
     public function updateDudi(Dudi $dudi, Request $request)

@@ -105,9 +105,11 @@
                         <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Kelas</label>
                         <select name="kelas_id" class="w-full bg-gray-900 border border-gray-700 rounded-2xl px-6 py-5 text-white focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition appearance-none" required>
                             <option value="">Pilih Kelas</option>
-                            @foreach($kelases as $k)
+                            @forelse($kelases as $k)
                                 <option value="{{ $k->id }}">{{ $k->nama }}</option>
-                            @endforeach
+                            @empty
+                                <option value="" disabled>Belum ada data kelas</option>
+                            @endforelse
                         </select>
                     </div>
 
