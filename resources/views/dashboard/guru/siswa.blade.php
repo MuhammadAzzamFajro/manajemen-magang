@@ -14,19 +14,71 @@
         </button>
     </div>
 
-    <div class="overflow-x-auto bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-3xl shadow-2xl">
-        <div class="min-w-[800px]">
-            <table class="w-full text-left text-sm text-gray-300">
-            <thead class="bg-gray-800/80 text-gray-400 uppercase text-[10px] font-black tracking-widest">
-                <tr>
-                    <th class="p-6">Identitas Siswa</th>
-                    <th class="p-6">NIS</th>
-                    <th class="p-6">Kelas</th>
-                    <th class="p-6">Email Akses</th>
-                    <th class="p-6 text-center">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-800">
+    <div class="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-3xl shadow-2xl overflow-hidden">
+        <!-- Mobile Card View -->
+        <div class="lg:hidden">
+            @forelse($siswas as $s)
+                <div class="p-6 border-b border-gray-800 last:border-b-0">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                                {{ strtoupper(substr($s->nama, 0, 1)) }}
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white">{{ $s->nama }}</h3>
+                                <p class="text-gray-400 text-sm">{{ $s->nis }}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="p-2 text-blue-400 hover:bg-blue-600/20 rounded-lg transition">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form action="{{ route('guru.siswa.destroy', $s) }}" method="POST" onsubmit="return confirm('Hapus data siswa ini?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="p-2 text-red-400 hover:bg-red-600/20 rounded-lg transition">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Kelas:</span>
+                            <span class="text-white">{{ $s->kelas->nama ?? '-' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Email:</span>
+                            <span class="text-white">{{ $s->user->email ?? '-' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Alamat:</span>
+                            <span class="text-white text-right">{{ $s->alamat ?: '-' }}</span>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="p-8 text-center text-gray-500">
+                    <i class="fas fa-user-slash text-4xl mb-4"></i>
+                    <p>Belum ada data siswa</p>
+                </div>
+            @endforelse
+        </div>
+
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block overflow-x-auto">
+            <div class="min-w-[800px]">
+                <table class="w-full text-left text-sm text-gray-300">
+                <thead class="bg-gray-800/80 text-gray-400 uppercase text-[10px] font-black tracking-widest">
+                    <tr>
+                        <th class="p-6">Identitas Siswa</th>
+                        <th class="p-6">NIS</th>
+                        <th class="p-6">Kelas</th>
+                        <th class="p-6">Email Akses</th>
+                        <th class="p-6 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800">
                 @forelse($siswas as $s)
                 <tr class="hover:bg-gray-800/30 transition group">
                     <td class="p-6">

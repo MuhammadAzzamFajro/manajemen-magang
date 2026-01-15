@@ -6,7 +6,7 @@ use App\Models\Siswa;
 use App\Models\Dudi;
 use App\Models\Kelas;
 use App\Models\Magang;
-use App\Models\logbook;
+use App\Models\Logbook;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -19,8 +19,8 @@ class DashboardController extends Controller
             'totalSiswa' => Siswa::count(),
             'totalDudi' => Dudi::count(),
             'totalMagang' => Magang::where('status', 'Aktif')->count(),
-            'totalLogbook' => logbook::count(),
-            'pendingLogbook' => logbook::where('status', 'Menunggu')->count(),
+            'totalLogbook' => Logbook::count(),
+            'pendingLogbook' => Logbook::where('status', 'Menunggu')->count(),
             'pendingMagang' => Magang::where('status', 'Pending')->count(),
         ];
 
@@ -40,7 +40,7 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $pendingLogbooks = logbook::with(['siswa.user', 'siswa.kelas'])
+        $pendingLogbooks = Logbook::with(['siswa.user', 'siswa.kelas'])
             ->where('status', 'Menunggu')
             ->latest()
             ->limit(5)
@@ -73,7 +73,7 @@ class DashboardController extends Controller
 
         if ($user?->role === 'Guru') {
             // Guru: bisa melihat semua data
-            $logbooks = logbook::with(['siswa.kelas'])
+            $logbooks = Logbook::with(['siswa.kelas'])
                 ->where(function ($q) use ($query) {
                     $q->where('kegiatan', 'like', "%{$query}%")
                       ->orWhere('deskripsi', 'like', "%{$query}%");
@@ -100,7 +100,7 @@ class DashboardController extends Controller
             $siswa = $this->getLoggedInSiswa();
 
             if ($siswa) {
-                $logbooks = logbook::where('siswa_id', $siswa->id)
+                $logbooks = Logbook::where('siswa_id', $siswa->id)
                     ->where(function ($q) use ($query) {
                         $q->where('kegiatan', 'like', "%{$query}%")
                           ->orWhere('deskripsi', 'like', "%{$query}%");
@@ -174,10 +174,10 @@ class DashboardController extends Controller
         $siswa = $this->getLoggedInSiswa();
         $namaSiswa = $siswa ? $siswa->nama : (Auth::user()->name ?? 'User');
 
-        $logbookCount = logbook::where('siswa_id', $siswa->id ?? 0)->count();
-        $approvedLogbook = logbook::where('siswa_id', $siswa->id ?? 0)->where('status', 'Setuju')->count();
-        $pendingLogbook = logbook::where('siswa_id', $siswa->id ?? 0)->where('status', 'Menunggu')->count();
-        $rejectedLogbook = logbook::where('siswa_id', $siswa->id ?? 0)->where('status', 'Tolak')->count();
+        $logbookCount = Logbook::where('siswa_id', $siswa->id ?? 0)->count();
+        $approvedLogbook = Logbook::where('siswa_id', $siswa->id ?? 0)->where('status', 'Setuju')->count();
+        $pendingLogbook = Logbook::where('siswa_id', $siswa->id ?? 0)->where('status', 'Menunggu')->count();
+        $rejectedLogbook = Logbook::where('siswa_id', $siswa->id ?? 0)->where('status', 'Tolak')->count();
 
         return view('dashboard.siswa.index', [
             'namaSiswa' => $namaSiswa,
@@ -283,7 +283,7 @@ class DashboardController extends Controller
 
     public function guruLogbook()
     {
-        $logbooks = logbook::with(['siswa.user', 'siswa.kelas'])->latest()->get();
+        $logbooks = Logbook::with(['siswa.user', 'siswa.kelas'])->latest()->get();
         return view('dashboard.guru.logbook', compact('logbooks'));
     }
 
@@ -304,7 +304,7 @@ class DashboardController extends Controller
     public function siswaLogbook()
     {
         $siswa = $this->getLoggedInSiswa();
-        $logbooks = logbook::where('siswa_id', $siswa->id ?? 0)->latest()->get();
+        $logbooks = Logbook::where('siswa_id', $siswa->id ?? 0)->latest()->get();
         return view('dashboard.siswa.logbook', compact('logbooks', 'siswa'));
     }
 
@@ -328,7 +328,7 @@ class DashboardController extends Controller
             return back()->with('error', 'Akun Anda tidak terhubung dengan data Siswa. Silakan hubungi admin.');
         }
 
-        logbook::create([
+        Logbook::create([
             'siswa_id' => $siswa->id,
             'tanggal' => $request->tanggal ?? now(),
             'kegiatan' => $request->kegiatan,
@@ -372,7 +372,7 @@ class DashboardController extends Controller
         return back()->with('success', 'Pengajuan magang berhasil dikirim. Menunggu verifikasi guru.');
     }
 
-    public function verifyLogbook(logbook $logbook, Request $request)
+    public function verifyLogbook(Logbook $logbook, Request $request)
     {
         $logbook->update([
             'status' => $request->status,

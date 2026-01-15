@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\logbook;
+use App\Models\Logbook;
 use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +14,7 @@ class LogbookController extends Controller
      */
     public function index(Request $request)
     {
-        $query = logbook::with(['siswa', 'verifier']);
+        $query = Logbook::with(['siswa', 'verifier']);
 
         // Filter by status if provided
         if ($request->has('status')) {
@@ -70,7 +70,7 @@ class LogbookController extends Controller
             ], 404);
         }
 
-        $logbook = logbook::create([
+        $logbook = Logbook::create([
             'siswa_id' => $request->siswa_id,
             'tanggal' => $request->tanggal,
             'kegiatan' => $request->kegiatan,
@@ -92,7 +92,7 @@ class LogbookController extends Controller
      */
     public function show($id)
     {
-        $logbook = logbook::with(['siswa', 'verifier'])->find($id);
+        $logbook = Logbook::with(['siswa', 'verifier'])->find($id);
 
         if ($logbook) {
             return response()->json([
@@ -114,7 +114,7 @@ class LogbookController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $logbook = logbook::find($id);
+        $logbook = Logbook::find($id);
         if (!$logbook) {
             return response()->json([
                 'status' => false,
@@ -155,7 +155,7 @@ class LogbookController extends Controller
      */
     public function destroy($id)
     {
-        $logbook = logbook::find($id);
+        $logbook = Logbook::find($id);
         if (!$logbook) {
             return response()->json([
                 'status' => false,
@@ -182,7 +182,7 @@ class LogbookController extends Controller
             'status' => 'required|in:Menunggu,Disetujui,Ditolak',
         ]);
 
-        $logbook = logbook::find($id);
+        $logbook = Logbook::find($id);
         if (!$logbook) {
             return response()->json([
                 'status' => false,
@@ -209,7 +209,7 @@ class LogbookController extends Controller
      */
     public function getBySiswa($siswaId)
     {
-        $logbooks = logbook::with(['siswa', 'verifier'])
+        $logbooks = Logbook::with(['siswa', 'verifier'])
                           ->bySiswa($siswaId)
                           ->orderBy('tanggal', 'desc')
                           ->get();

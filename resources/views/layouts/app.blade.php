@@ -53,7 +53,7 @@
         .will-change-transform { will-change: transform; }
     </style>
 </head>
-<body class="font-sans antialiased bg-gray-900 text-white" x-data="{ showSwitchModal: false, switchRoleLabel: '', sidebarOpen: false }">
+<body class="font-sans antialiased bg-gray-900 text-white" x-data="{ showSwitchModal: false, switchRoleLabel: '', sidebarOpen: false, showUserMenu: false }">
     <div class="flex min-h-screen bg-gray-900">
         <!-- Mobile Sidebar Overlay -->
         <div x-show="sidebarOpen" 
