@@ -15,9 +15,20 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        if (!auth()->check() || auth()->user()->role !== $role) {
-            $redirect = auth()->user()->role === 'Guru' ? 'dashboard.guru' : 'dashboard.siswa';
-            return redirect()->route($redirect)->with('error', 'Anda tidak memiliki hak akses ke halaman tersebut.');
+        // Jika belum login, arahkan ke halaman login
+        if (! auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        // Sudah login tapi role tidak sesuai
+        if (auth()->user()->role !== $role) {
+            $redirect = auth()->user()->role === 'Guru'
+                ? 'dashboard.guru'
+                : 'dashboard.siswa';
+
+            return redirect()
+                ->route($redirect)
+                ->with('error', 'Anda tidak memiliki hak akses ke halaman tersebut.');
         }
 
         return $next($request);

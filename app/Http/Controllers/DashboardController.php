@@ -49,6 +49,98 @@ class DashboardController extends Controller
         return view('dashboard.guru.index', compact('stats', 'magangs', 'latestSiswas', 'pendingMagangs', 'pendingLogbooks'));
     }
 
+    /**
+     * Global search untuk logbook, magang, dan DUDI.
+     */
+    public function search(Request $request)
+    {
+        $request->validate([
+            'q' => 'nullable|string|max:255',
+        ]);
+
+        $query = trim((string) $request->get('q', ''));
+
+        if ($query === '') {
+            return redirect()->back();
+        }
+
+        $user = Auth::user();
+
+        // Siapkan koleksi kosong default
+        $logbooks = collect();
+        $magangs = collect();
+        $dudis = collect();
+
+        if ($user?->role === 'Guru') {
+            // Guru: bisa melihat semua data
+            $logbooks = logbook::with(['siswa.kelas'])
+                ->where(function ($q) use ($query) {
+                    $q->where('kegiatan', 'like', "%{$query}%")
+                      ->orWhere('deskripsi', 'like', "%{$query}%");
+                })
+                ->latest()
+                ->limit(20)
+                ->get();
+
+            $magangs = Magang::with(['siswa.kelas', 'dudi'])
+                ->where(function ($q) use ($query) {
+                    $q->where('judul_magang', 'like', "%{$query}%")
+                      ->orWhereHas('siswa', function ($qs) use ($query) {
+                          $qs->where('nama', 'like', "%{$query}%");
+                      })
+                      ->orWhereHas('dudi', function ($qd) use ($query) {
+                          $qd->where('nama', 'like', "%{$query}%");
+                      });
+                })
+                ->latest()
+                ->limit(20)
+                ->get();
+        } else {
+            // Siswa / role lain: batasi ke data milik siswa login
+            $siswa = $this->getLoggedInSiswa();
+
+            if ($siswa) {
+                $logbooks = logbook::where('siswa_id', $siswa->id)
+                    ->where(function ($q) use ($query) {
+                        $q->where('kegiatan', 'like', "%{$query}%")
+                          ->orWhere('deskripsi', 'like', "%{$query}%");
+                    })
+                    ->latest()
+                    ->limit(20)
+                    ->get();
+
+                $magangs = Magang::with(['dudi'])
+                    ->where('siswa_id', $siswa->id)
+                    ->where(function ($q) use ($query) {
+                        $q->where('judul_magang', 'like', "%{$query}%")
+                          ->orWhereHas('dudi', function ($qd) use ($query) {
+                              $qd->where('nama', 'like', "%{$query}%");
+                          });
+                    })
+                    ->latest()
+                    ->limit(20)
+                    ->get();
+            }
+        }
+
+        // DUDI bisa dicari oleh semua role
+        $dudis = Dudi::where(function ($q) use ($query) {
+                $q->where('nama', 'like', "%{$query}%")
+                  ->orWhere('bidang_usaha', 'like', "%{$query}%")
+                  ->orWhere('alamat', 'like', "%{$query}%");
+            })
+            ->orderBy('nama')
+            ->limit(20)
+            ->get();
+
+        return view('search.results', [
+            'query' => $query,
+            'logbooks' => $logbooks,
+            'magangs' => $magangs,
+            'dudis' => $dudis,
+        ]);
+    }
+
     private function getLoggedInSiswa()
     {
         $user = Auth::user();

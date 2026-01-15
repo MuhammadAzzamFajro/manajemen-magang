@@ -10,9 +10,9 @@ use App\Http\Controllers\LogbookController;
 use App\Http\Controllers\DudiController;
 use App\Http\Controllers\MagangController;
 
-// Public auth routes
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
+// Public auth routes (API-style, akan mengembalikan JSON + token Sanctum)
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:login');
 
 Route::middleware('auth:sanctum')->group(function () {
     // Student management

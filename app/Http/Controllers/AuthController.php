@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\NewAccessToken;
 
 class AuthController extends Controller
 {
@@ -20,6 +21,30 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
+
+        // Jika diminta sebagai API (Accept: application/json atau route prefix /api)
+        if ($request->wantsJson()) {
+            if (! Auth::attempt($credentials)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Kredensial tidak valid.',
+                ], 401);
+            }
+
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+            /** @var NewAccessToken $token */
+            $token = $user->createToken('api-token');
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Login berhasil.',
+                'data' => [
+                    'user' => $user,
+                    'token' => $token->plainTextToken,
+                ],
+            ]);
+        }
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
@@ -57,6 +82,21 @@ class AuthController extends Controller
             'role' => $request->role,
         ]);
 
+        // Jika register via API, langsung kembalikan token Sanctum
+        if ($request->wantsJson()) {
+            /** @var NewAccessToken $token */
+            $token = $user->createToken('api-token');
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Registrasi berhasil.',
+                'data' => [
+                    'user' => $user,
+                    'token' => $token->plainTextToken,
+                ],
+            ], 201);
+        }
+
         Auth::login($user);
 
         return $user->role === 'Guru' 
@@ -74,22 +114,54 @@ class AuthController extends Controller
 
     public function switchRole(Request $request)
     {
+        // Hanya izinkan user yang sudah login untuk mengganti "mode tampilan" dashboard
         $request->validate([
-            'email' => 'required|email'
+            'role' => 'required|in:Siswa,Guru',
         ]);
 
-        $user = User::where('email', $request->email)->first();
-
-        if ($user) {
-            Auth::login($user);
-            $request->session()->regenerate();
-
-            if ($user->role === 'Guru') {
-                return redirect()->route('dashboard.guru')->with('success', 'Berhasil beralih ke Mode Guru');
-            }
-            return redirect()->route('dashboard.siswa')->with('success', 'Berhasil beralih ke Mode Siswa');
+        if (! Auth::check()) {
+            return redirect()->route('login')->withErrors([
+                'switch_role' => 'Silakan login sebelum mengganti mode.',
+            ]);
         }
 
-        return back()->withErrors(['switch_email' => 'Email tidak terdaftar sebagai Guru/Siswa yang valid.']);
+        $user = Auth::user();
+
+        // Opsional: batasi hanya jika user memang memiliki role tersebut
+        if ($user->role !== $request->role) {
+            return back()->withErrors([
+                'switch_role' => 'Role akun Anda tidak sesuai untuk mode yang dipilih.',
+            ]);
+        }
+
+        // Tidak mengubah data di database, hanya redirect ke dashboard sesuai role
+        if ($request->role === 'Guru') {
+            return redirect()->route('dashboard.guru')->with('success', 'Berhasil beralih ke Mode Guru');
+        }
+
+        return redirect()->route('dashboard.siswa')->with('success', 'Berhasil beralih ke Mode Siswa');
+    }
+
+    /**
+     * Verifikasi token Sanctum yang dikirim client.
+     */
+    public function verifyToken(Request $request)
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Token tidak valid atau sudah kedaluwarsa.',
+            ], 401);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Token valid.',
+            'data' => [
+                'user' => $user,
+            ],
+        ]);
     }
 }

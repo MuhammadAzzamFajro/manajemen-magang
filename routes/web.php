@@ -9,13 +9,16 @@ Route::get('/', function () {
 });
 
 Route::get('/login', [AuthController::class, 'loginView'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 Route::get('/register', [AuthController::class, 'registerView'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/switch-role', [AuthController::class, 'switchRole'])->name('switch.role');
 
 Route::middleware(['auth'])->group(function () {
+    // Global search (untuk guru & siswa)
+    Route::get('/search', [DashboardController::class, 'search'])->name('search');
+
     // Dashboard
     Route::get('/dashboard/guru', [DashboardController::class, 'index'])->middleware('role:Guru')->name('dashboard.guru');
     Route::get('/dashboard/siswa', [DashboardController::class, 'siswa'])->middleware('role:Siswa')->name('dashboard.siswa');
