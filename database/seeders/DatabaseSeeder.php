@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
         foreach($kelasNames as $name) {
             $kelas->push(Kelas::updateOrCreate(['nama' => $name]));
         }
-        
+
         // 4. Buat Profil Siswa untuk User Demo
         $demoSiswa = Siswa::updateOrCreate(['user_id' => $studentUser->id], [
             'nis' => '123456789',
@@ -58,17 +58,17 @@ class DatabaseSeeder extends Seeder
         foreach($dudiNames as $dudiName) {
             Dudi::updateOrCreate(['nama' => $dudiName], [
                 'alamat' => 'Gedung Cyber 2, Jl. HR. Rasuna Said, Jakarta',
-                'pimpinan' => 'Bp. Budi Santoso',
+                'penanggung_jawab' => 'Bp. Budi Santoso',
                 'telepon' => '021-555' . rand(100, 999),
-                'email_kontak' => strtolower(str_replace(' ', '.', $dudiName)) . '@company.com',
+                'email' => strtolower(str_replace(' ', '.', $dudiName)) . '@company.com',
             ]);
         }
 
         $seededDudis = Dudi::all();
-        
+
         // 6. Seed Magang untuk Siswa Demo
         $guruId = User::where('email', 'admin@gmail.com')->first()->id;
-        
+
         Magang::updateOrCreate(['siswa_id' => $demoSiswa->id], [
             'dudi_id' => $seededDudis->random()->id,
             'guru_pembimbing_id' => $guruId,

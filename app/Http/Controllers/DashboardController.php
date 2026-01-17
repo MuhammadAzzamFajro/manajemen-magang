@@ -15,38 +15,59 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $stats = [
-            'totalSiswa' => Siswa::count(),
-            'totalDudi' => Dudi::count(),
-            'totalMagang' => Magang::where('status', 'Aktif')->count(),
-            'totalLogbook' => Logbook::count(),
-            'pendingLogbook' => Logbook::where('status', 'Menunggu')->count(),
-            'pendingMagang' => Magang::where('status', 'Pending')->count(),
-        ];
+        try {
+            // Statistik dengan fallback 0
+            $stats = [
+                'totalSiswa' => Siswa::count(),
+                'totalDudi' => Dudi::count(),
+                'totalMagang' => Magang::where('status', 'Aktif')->count(),
+                'totalLogbook' => Logbook::count(),
+                'pendingLogbook' => Logbook::where('status', 'Menunggu')->count(),
+                'pendingMagang' => Magang::where('status', 'Pending')->count(),
+            ];
 
-        $magangs = Magang::with(['siswa', 'dudi'])
-            ->latest()
-            ->limit(5)
-            ->get();
+            $magangs = Magang::with(['siswa', 'dudi'])
+                ->latest()
+                ->limit(5)
+                ->get() ?? collect();
 
-        $latestSiswas = Siswa::with(['kelas'])
-            ->latest()
-            ->limit(5)
-            ->get();
+            $latestSiswas = Siswa::with(['kelas'])
+                ->latest()
+                ->limit(5)
+                ->get() ?? collect();
 
-        $pendingMagangs = Magang::with(['siswa', 'dudi'])
-            ->where('status', 'Pending')
-            ->latest()
-            ->limit(5)
-            ->get();
+            $pendingMagangs = Magang::with(['siswa', 'dudi'])
+                ->where('status', 'Pending')
+                ->latest()
+                ->limit(5)
+                ->get() ?? collect();
 
-        $pendingLogbooks = Logbook::with(['siswa.user', 'siswa.kelas'])
-            ->where('status', 'Menunggu')
-            ->latest()
-            ->limit(5)
-            ->get();
+            $pendingLogbooks = Logbook::with(['siswa.user', 'siswa.kelas'])
+                ->where('status', 'Menunggu')
+                ->latest()
+                ->limit(5)
+                ->get() ?? collect();
 
-        return view('dashboard.guru.index', compact('stats', 'magangs', 'latestSiswas', 'pendingMagangs', 'pendingLogbooks'));
+            return view('dashboard.guru.index', compact('stats', 'magangs', 'latestSiswas', 'pendingMagangs', 'pendingLogbooks'));
+        } catch (\Exception $e) {
+            // Jika ada error, return dengan data kosong
+            $stats = [
+                'totalSiswa' => 0,
+                'totalDudi' => 0,
+                'totalMagang' => 0,
+                'totalLogbook' => 0,
+                'pendingLogbook' => 0,
+                'pendingMagang' => 0,
+            ];
+
+            return view('dashboard.guru.index', [
+                'stats' => $stats,
+                'magangs' => collect(),
+                'latestSiswas' => collect(),
+                'pendingMagangs' => collect(),
+                'pendingLogbooks' => collect(),
+            ]);
+        }
     }
 
     /**
@@ -172,12 +193,12 @@ class DashboardController extends Controller
     public function siswa()
     {
         $siswa = $this->getLoggedInSiswa();
-        $namaSiswa = $siswa ? $siswa->nama : (Auth::user()->name ?? 'User');
+        $namaSiswa = session('active_name', $siswa ? $siswa->nama : (Auth::user()->name ?? 'User'));
 
-        $logbookCount = Logbook::where('siswa_id', $siswa->id ?? 0)->count();
-        $approvedLogbook = Logbook::where('siswa_id', $siswa->id ?? 0)->where('status', 'Setuju')->count();
-        $pendingLogbook = Logbook::where('siswa_id', $siswa->id ?? 0)->where('status', 'Menunggu')->count();
-        $rejectedLogbook = Logbook::where('siswa_id', $siswa->id ?? 0)->where('status', 'Tolak')->count();
+        $logbookCount = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->count();
+        $approvedLogbook = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->where('status', 'Setuju')->count();
+        $pendingLogbook = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->where('status', 'Menunggu')->count();
+        $rejectedLogbook = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->where('status', 'Tolak')->count();
 
         return view('dashboard.siswa.index', [
             'namaSiswa' => $namaSiswa,
@@ -297,14 +318,14 @@ class DashboardController extends Controller
     public function siswaMagang()
     {
         $siswa = $this->getLoggedInSiswa();
-        $magangs = Magang::where('siswa_id', $siswa->id ?? 0)->with('dudi')->get();
+        $magangs = Magang::where('siswa_id', ($siswa?->id) ?? 0)->with('dudi')->get();
         return view('dashboard.siswa.magang', compact('magangs', 'siswa'));
     }
 
     public function siswaLogbook()
     {
         $siswa = $this->getLoggedInSiswa();
-        $logbooks = Logbook::where('siswa_id', $siswa->id ?? 0)->latest()->get();
+        $logbooks = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->latest()->get();
         return view('dashboard.siswa.logbook', compact('logbooks', 'siswa'));
     }
 

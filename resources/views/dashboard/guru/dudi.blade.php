@@ -54,7 +54,7 @@
                         </td>
                         <td class="p-6">
                             <div class="flex items-center justify-center gap-3">
-                                <button class="w-10 h-10 flex items-center justify-center bg-gray-900 border border-gray-800 text-blue-500 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-md" 
+                                <button class="w-10 h-10 flex items-center justify-center bg-gray-900 border border-gray-800 text-blue-500 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-md"
                                         @click="editingDudi = {{ json_encode($dudi) }}">
                                     <i class="fas fa-edit text-xs"></i>
                                 </button>
@@ -90,7 +90,7 @@
     <template x-teleport="body">
         <div x-show="showAddModal || editingDudi" class="fixed inset-0 z-50 flex items-center justify-center p-4" x-cloak>
             <div class="absolute inset-0 bg-black/90 backdrop-blur-xl" @click="showAddModal = false; editingDudi = null"></div>
-            
+
             <div class="relative bg-gray-800 border-2 border-gray-700 w-full max-w-lg rounded-[3.5rem] shadow-2xl p-10 md:p-14 overflow-hidden transform transition-all">
                 <div class="flex justify-between items-start mb-10">
                     <div>
@@ -127,7 +127,7 @@
 
                         <div>
                             <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Alamat Kantor Pusat</label>
-                            <textarea name="alamat" rows="3" class="w-full bg-gray-950 border border-gray-800 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-blue-500/50 transition-all text-sm font-medium italic" placeholder="Jl. Raya Utama No. 123, Surabaya..." x-text="editingDudi ? editingDudi.alamat : ''"></textarea>
+                            <textarea name="alamat" rows="3" x-model="editingDudi.alamat" class="w-full bg-gray-950 border border-gray-800 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-blue-500/50 transition-all text-sm font-medium italic" placeholder="Jl. Raya Utama No. 123, Surabaya..."></textarea>
                         </div>
                     </div>
 

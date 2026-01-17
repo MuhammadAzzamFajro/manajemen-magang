@@ -19,9 +19,9 @@ Route::middleware(['auth'])->group(function () {
     // Global search (untuk guru & siswa)
     Route::get('/search', [DashboardController::class, 'search'])->name('search');
 
-    // Dashboard
-    Route::get('/dashboard/guru', [DashboardController::class, 'index'])->middleware('role:Guru')->name('dashboard.guru');
-    Route::get('/dashboard/siswa', [DashboardController::class, 'siswa'])->middleware('role:Siswa')->name('dashboard.siswa');
+    // Dashboard - dengan role protection
+    Route::middleware(['role:Guru'])->get('/dashboard/guru', [DashboardController::class, 'index'])->name('dashboard.guru');
+    Route::middleware(['role:Siswa'])->get('/dashboard/siswa', [DashboardController::class, 'siswa'])->name('dashboard.siswa');
 
     // Guru Sub-pages
     Route::middleware(['role:Guru'])->prefix('dashboard/guru')->name('guru.')->group(function() {

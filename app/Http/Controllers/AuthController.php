@@ -48,8 +48,10 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            
+
             $user = Auth::user();
+            $request->session()->put('active_role', $user->role);
+
             if ($user->role === 'Guru') {
                 return redirect()->intended('dashboard/guru');
             }
@@ -99,7 +101,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return $user->role === 'Guru' 
+        return $user->role === 'Guru'
                ? redirect()->route('dashboard.guru')
                : redirect()->route('dashboard.siswa');
     }
@@ -117,6 +119,7 @@ class AuthController extends Controller
         // Hanya izinkan user yang sudah login untuk mengganti "mode tampilan" dashboard
         $request->validate([
             'role' => 'required|in:Siswa,Guru',
+            'email' => 'required|email',
         ]);
 
         if (! Auth::check()) {
@@ -125,17 +128,26 @@ class AuthController extends Controller
             ]);
         }
 
-        $user = Auth::user();
+        $targetRole = $request->role;
+        $emailInput = $request->email;
 
-        // Opsional: batasi hanya jika user memang memiliki role tersebut
-        if ($user->role !== $request->role) {
+        // Cek apakah email yang diinput terdaftar di database dengan role yang diminta
+        $targetUser = User::where('email', $emailInput)->where('role', $targetRole)->first();
+
+        if (!$targetUser) {
             return back()->withErrors([
-                'switch_role' => 'Role akun Anda tidak sesuai untuk mode yang dipilih.',
+                'switch_email' => 'Email tidak terdaftar atau tidak memiliki akses ke mode ' . $targetRole . '.',
             ]);
         }
 
-        // Tidak mengubah data di database, hanya redirect ke dashboard sesuai role
-        if ($request->role === 'Guru') {
+        // Simpan role pilihan, email, dan nama di session untuk visual saja
+        // Tetap gunakan user yang login saat ini, tapi ubah active_role, active_email, dan active_name-nya
+        $request->session()->put('active_role', $targetRole);
+        $request->session()->put('active_email', $emailInput);
+        $request->session()->put('active_name', $targetUser->name);
+
+        // Redirect ke dashboard sesuai role yang dipilih
+        if ($targetRole === 'Guru') {
             return redirect()->route('dashboard.guru')->with('success', 'Berhasil beralih ke Mode Guru');
         }
 

@@ -9,10 +9,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
+
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
+
     <!-- Tailwind CSS (Stable v3) & Alpine.js -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -33,7 +33,7 @@
         }
     </script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+
     <style>
         [x-cloak] { display: none !important; }
         * { font-display: swap; }
@@ -53,10 +53,10 @@
         .will-change-transform { will-change: transform; }
     </style>
 </head>
-<body class="font-sans antialiased bg-gray-900 text-white" x-data="{ showSwitchModal: false, switchRoleLabel: '', sidebarOpen: false, showUserMenu: false }">
+<body class="font-sans antialiased bg-gray-900 text-white overflow-x-hidden" x-data="{ showSwitchModal: false, switchRoleLabel: '', sidebarOpen: false, showUserMenu: false }">
     <div class="flex min-h-screen bg-gray-900">
         <!-- Mobile Sidebar Overlay -->
-        <div x-show="sidebarOpen" 
+        <div x-show="sidebarOpen"
              x-transition:enter="transition-opacity ease-linear duration-300"
              x-transition:enter-start="opacity-0"
              x-transition:enter-end="opacity-100"
@@ -72,42 +72,16 @@
             @include('partials.sidebar-siswa')
         @endif
 
-        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-            @include('partials.navbar')
-
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-800 p-6">
-                <!-- Flash Messages -->
-                @if(session('success'))
-                    <div class="mb-6 p-4 bg-green-500/20 border border-green-500/50 text-green-400 rounded-xl flex items-center gap-3">
-                        <i class="fas fa-check-circle"></i>
-                        <span>{{ session('success') }}</span>
-                    </div>
-                @endif
-
-                @if($errors->has('switch_email'))
-                    <div class="mb-6 p-4 bg-red-500/20 border border-red-500/50 text-red-400 rounded-xl flex items-center gap-3">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span>{{ $errors->first('switch_email') }}</span>
-                    </div>
-                @endif
-
-                @if($errors->any() && !$errors->has('switch_email'))
-                    <div class="mb-6 p-4 bg-red-500/20 border border-red-500/50 text-red-400 rounded-xl">
-                        <div class="flex items-center gap-3 mb-2">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span class="font-bold">Terjadi Kesalahan:</span>
-                        </div>
-                        <ul class="list-disc list-inside text-sm opacity-80">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
-                <div class="page-enter">
-                    @yield('content')
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col min-w-0">
+            <div class="sticky top-0 z-30 bg-gray-900/80 backdrop-blur border-b border-gray-800">
+                <div class="px-4 md:px-6 lg:px-8 py-3">
+                    @include('partials.navbar')
                 </div>
+            </div>
+
+            <main class="flex-1 bg-gray-800 p-4 md:p-6 lg:p-8 overflow-y-auto">
+                @yield('content')
             </main>
         </div>
     </div>
@@ -122,16 +96,22 @@
                         <i class="fas fa-user-shield text-3xl"></i>
                     </div>
                     <h2 class="text-2xl font-black text-white uppercase tracking-tighter">Verifikasi Akses</h2>
-                    <p class="text-gray-400 text-sm mt-1">Silakan masukkan email <span class="font-bold text-white" x-text="switchRoleLabel"></span> untuk melanjutkan</p>
+                    <p class="text-gray-400 text-sm mt-1">Masukkan email untuk beralih ke mode <span class="font-bold text-white" x-text="switchRoleLabel"></span></p>
                 </div>
 
-                <form action="{{ route('switch.role') }}" method="POST" class="space-y-6">
+                <form action="{{ route('switch.role') }}" method="POST" class="space-y-6" @submit="$event.target.querySelector('input[name=role]').value = switchRoleLabel">
                     @csrf
+                    <input type="hidden" name="role" :value="switchRoleLabel">
                     <div>
                         <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Email Kredensial</label>
-                        <input type="email" name="email" class="w-full bg-gray-900 border border-gray-700 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-4 focus:ring-cyan-500/20 transition" :placeholder="`Masukkan email ${switchRoleLabel}...`" required>
+                        <input type="email" name="email" class="w-full bg-gray-900 border border-gray-700 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-4 focus:ring-cyan-500/20 transition" placeholder="Masukkan email akun Anda" required>
+                        @error('email')
+                            <span class="text-red-400 text-xs mt-2 block">{{ $message }}</span>
+                        @enderror
+                        @if($errors->has('switch_email'))
+                            <span class="text-red-400 text-xs mt-2 block">{{ $errors->first('switch_email') }}</span>
+                        @endif
                     </div>
-
                     <div class="flex gap-4">
                         <button type="button" class="flex-1 py-4 bg-gray-700 text-gray-300 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-gray-600 transition" @click="showSwitchModal = false">Batal</button>
                         <button type="submit" class="flex-1 py-4 bg-cyan-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl shadow-cyan-600/40 hover:bg-cyan-500 transition">Verifikasi</button>

@@ -1,7 +1,7 @@
-<aside 
+<aside
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-    class="fixed inset-y-0 left-0 z-50 w-72 bg-gray-900 border-r border-gray-800 px-6 py-8 transform lg:static lg:translate-x-0 transition duration-300 ease-in-out shadow-2xl lg:shadow-none">
-    
+    class="fixed inset-y-0 left-0 z-50 w-72 flex flex-col bg-gray-900 border-r border-gray-800 px-6 py-8 transform lg:static lg:translate-x-0 transition duration-300 ease-in-out shadow-2xl lg:shadow-none">
+
     <!-- Mobile Close Button -->
     <button @click="sidebarOpen = false" class="lg:hidden absolute top-4 right-4 text-gray-400 hover:text-white">
         <i class="fas fa-times text-xl"></i>

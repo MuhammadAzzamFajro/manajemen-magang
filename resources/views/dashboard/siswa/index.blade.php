@@ -3,21 +3,21 @@
 @section('title', 'Dashboard Siswa')
 
 @section('content')
-<div class="p-4 md:p-8 text-white min-h-screen">
+<div class="p-4 md:p-8 text-white">
     <div class="mb-10">
         <h1 class="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none mb-2">Portal <span class="text-cyan-500">Siswa</span></h1>
         <p class="text-gray-400 font-medium">Selamat datang kembali, <span class="text-white font-bold">{{ $namaSiswa }}</span></p>
     </div>
 
     <div class="flex flex-col sm:flex-row gap-4 mb-12">
-        <div class="flex gap-1 bg-gray-900 p-1.5 rounded-2xl w-full sm:w-fit border border-gray-800 shadow-inner">
+        <div class="flex gap-2 bg-gray-950 p-2 rounded-2xl w-full sm:w-fit border border-gray-800 backdrop-blur-md shadow-2xl">
             <a href="{{ route('dashboard.siswa') }}" 
-               class="flex-1 sm:px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 {{ Request::routeIs('dashboard.siswa') ? 'bg-cyan-600 text-white shadow-xl shadow-cyan-600/20' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800' }}">
+               class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 {{ Request::routeIs('dashboard.siswa') ? 'bg-cyan-600 text-white shadow-xl shadow-cyan-600/30' : 'text-gray-500 hover:text-white hover:bg-gray-800' }}">
                 <i class="fas fa-user-graduate"></i>
                 Siswa
             </a>
             <button @click="showSwitchModal = true; switchRoleLabel = 'Guru'" 
-               class="flex-1 sm:px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 text-gray-500 hover:text-gray-300 hover:bg-gray-800">
+               class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 text-gray-500 hover:text-white hover:bg-gray-800">
                 <i class="fas fa-chalkboard-teacher"></i>
                 Guru
             </button>
