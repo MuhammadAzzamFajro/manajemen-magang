@@ -29,23 +29,27 @@ class DashboardController extends Controller
                 'pendingMagang' => Magang::where('status', 'Pending')->count(),
             ];
 
-            $magangs = Magang::with(['siswa', 'dudi'])
+            $magangs = Magang::with(['siswa:id,nama,user_id', 'dudi:id,nama'])
+                ->select('id', 'siswa_id', 'dudi_id', 'judul_magang', 'status', 'created_at')
                 ->latest()
                 ->limit(5)
                 ->get() ?? collect();
 
-            $latestSiswas = Siswa::with(['kelas'])
+            $latestSiswas = Siswa::with(['kelas:id,nama'])
+                ->select('id', 'nama', 'kelas_id', 'created_at')
                 ->latest()
                 ->limit(5)
                 ->get() ?? collect();
 
-            $pendingMagangs = Magang::with(['siswa', 'dudi'])
+            $pendingMagangs = Magang::with(['siswa:id,nama,user_id', 'dudi:id,nama'])
+                ->select('id', 'siswa_id', 'dudi_id', 'judul_magang', 'status', 'created_at')
                 ->where('status', 'Pending')
                 ->latest()
                 ->limit(5)
                 ->get() ?? collect();
 
-            $pendingLogbooks = Logbook::with(['siswa.user', 'siswa.kelas'])
+            $pendingLogbooks = Logbook::with(['siswa.user:id,name', 'siswa.kelas:id,nama'])
+                ->select('id', 'siswa_id', 'kegiatan', 'status', 'created_at')
                 ->where('status', 'Menunggu')
                 ->latest()
                 ->limit(5)
@@ -228,6 +232,19 @@ class DashboardController extends Controller
                 $siswa = Siswa::where('user_id', $targetUser->id)
                     ->with(['kelas', 'user'])
                     ->first();
+
+                // Auto-create siswa jika tidak ada dan target user adalah Siswa
+                if (!$siswa && $targetUser->role === 'Siswa') {
+                    $kelas = Kelas::first() ?? Kelas::create(['nama' => 'XII RPL 1']);
+                    $siswa = Siswa::create([
+                        'user_id' => $targetUser->id,
+                        'nis' => 'NIS-' . str_pad($targetUser->id, 5, '0', STR_PAD_LEFT),
+                        'nama' => $targetUser->name,
+                        'kelas_id' => $kelas->id,
+                        'alamat' => 'Belum diisi',
+                    ]);
+                    $siswa->load(['kelas', 'user']);
+                }
             }
         }
 
@@ -287,21 +304,21 @@ class DashboardController extends Controller
             if ($magang) {
                 $internshipStatus = 'Sedang Magang';
                 $internshipCompany = $magang->dudi->nama ?? null;
-                
+
                 // Calculate internship progress (90 days total)
                 if ($magang->tanggal_mulai) {
                     $startDate = \Carbon\Carbon::parse($magang->tanggal_mulai);
                     $currentDate = \Carbon\Carbon::now();
-                    
+
                     // Simple calculation: get absolute difference in days
                     $daysPassed = abs($startDate->diffInDays($currentDate));
                     $totalDays = 90; // 6 bulan = 90 hari kerja
-                    
+
                     // Cap at maximum and ensure minimum
                     $daysPassed = max(0, min($daysPassed, $totalDays));
                     $daysPassed = round($daysPassed); // Round to a whole number
                     $percentage = round(($daysPassed / $totalDays) * 100);
-                    
+
                     $internshipProgress = [
                         'days_passed' => $daysPassed,
                         'total_days' => $totalDays,

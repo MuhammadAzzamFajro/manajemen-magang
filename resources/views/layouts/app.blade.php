@@ -90,38 +90,36 @@
     </div>
 
     <!-- Global Switch Role Modal -->
-    <template x-teleport="body">
-        <div x-show="showSwitchModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" x-cloak>
-            <div class="absolute inset-0 bg-black/90 backdrop-blur-xl" @click="showSwitchModal = false"></div>
-            <div class="relative bg-gray-800 border-2 border-gray-700 w-full max-w-md rounded-[3rem] shadow-2xl p-10">
-                <div class="text-center mb-8">
-                    <div class="w-20 h-20 bg-cyan-600/20 text-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-500/30">
-                        <i class="fas fa-user-shield text-3xl"></i>
-                    </div>
-                    <h2 class="text-2xl font-black text-white uppercase tracking-tighter">Verifikasi Akses</h2>
-                    <p class="text-gray-400 text-sm mt-1">Masukkan email untuk beralih ke mode <span class="font-bold text-white" x-text="switchRoleLabel"></span></p>
+    <div x-show="showSwitchModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" x-cloak>
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-xl" @click="showSwitchModal = false"></div>
+        <div class="relative bg-gray-800 border-2 border-gray-700 w-full max-w-md rounded-[3rem] shadow-2xl p-10">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-cyan-600/20 text-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-500/30">
+                    <i class="fas fa-user-shield text-3xl"></i>
                 </div>
-
-                <form action="{{ route('switch.role') }}" method="POST" class="space-y-6" @submit="$event.target.querySelector('input[name=role]').value = switchRoleLabel">
-                    @csrf
-                    <input type="hidden" name="role" :value="switchRoleLabel">
-                    <div>
-                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Email Kredensial</label>
-                        <input type="email" name="email" class="w-full bg-gray-900 border border-gray-700 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-4 focus:ring-cyan-500/20 transition" placeholder="Masukkan email akun Anda" required>
-                        @error('email')
-                            <span class="text-red-400 text-xs mt-2 block">{{ $message }}</span>
-                        @enderror
-                        @if($errors->has('switch_email'))
-                            <span class="text-red-400 text-xs mt-2 block">{{ $errors->first('switch_email') }}</span>
-                        @endif
-                    </div>
-                    <div class="flex gap-4">
-                        <button type="button" class="flex-1 py-4 bg-gray-700 text-gray-300 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-gray-600 transition" @click="showSwitchModal = false">Batal</button>
-                        <button type="submit" class="flex-1 py-4 bg-cyan-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl shadow-cyan-600/40 hover:bg-cyan-500 transition">Verifikasi</button>
-                    </div>
-                </form>
+                <h2 class="text-2xl font-black text-white uppercase tracking-tighter">Verifikasi Akses</h2>
+                <p class="text-gray-400 text-sm mt-1">Masukkan email untuk beralih ke mode <span class="font-bold text-white" x-text="switchRoleLabel"></span></p>
             </div>
+
+            <form action="{{ route('switch.role') }}" method="POST" class="space-y-6" @submit="$event.target.querySelector('input[name=role]').value = switchRoleLabel">
+                @csrf
+                <input type="hidden" name="role" :value="switchRoleLabel">
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Email Kredensial</label>
+                    <input type="email" name="email" class="w-full bg-gray-900 border border-gray-700 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-4 focus:ring-cyan-500/20 transition" placeholder="Masukkan email akun Anda" required>
+                    @error('email')
+                        <span class="text-red-400 text-xs mt-2 block">{{ $message }}</span>
+                    @enderror
+                    @if($errors->has('switch_email'))
+                        <span class="text-red-400 text-xs mt-2 block">{{ $errors->first('switch_email') }}</span>
+                    @endif
+                </div>
+                <div class="flex gap-4">
+                    <button type="button" class="flex-1 py-4 bg-gray-700 text-gray-300 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-gray-600 transition" @click="showSwitchModal = false">Batal</button>
+                    <button type="submit" class="flex-1 py-4 bg-cyan-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl shadow-cyan-600/40 hover:bg-cyan-500 transition">Verifikasi</button>
+                </div>
+            </form>
         </div>
-    </template>
+    </div>
 </body>
 </html>

@@ -134,12 +134,32 @@ class AuthController extends Controller
         $targetRole = $request->role;
         $emailInput = $request->email;
 
+        // Jika email yang diinput adalah email user yang login, izinkan beralih ke role apapun
+        if ($emailInput === Auth::user()->email) {
+            $request->session()->put('active_role', $targetRole);
+            $request->session()->put('active_email', $emailInput);
+            $request->session()->put('active_name', Auth::user()->name);
+
+            if ($targetRole === 'Guru') {
+                return redirect()->route('dashboard.guru')->with('success', 'Berhasil beralih ke Mode Guru');
+            }
+
+            return redirect()->route('dashboard.siswa')->with('success', 'Berhasil beralih ke Mode Siswa');
+        }
+
         // Cek apakah email yang diinput terdaftar di database dengan role yang diminta
         $targetUser = User::where('email', $emailInput)->where('role', $targetRole)->first();
 
         if (!$targetUser) {
             return back()->withErrors([
                 'switch_email' => 'Email tidak terdaftar atau tidak memiliki akses ke mode ' . $targetRole . '.',
+            ]);
+        }
+
+        // Pastikan email sudah diverifikasi
+        if (!$targetUser->email_verified_at) {
+            return back()->withErrors([
+                'switch_email' => 'Email belum diverifikasi. Silakan verifikasi email terlebih dahulu sebelum beralih role.',
             ]);
         }
 
