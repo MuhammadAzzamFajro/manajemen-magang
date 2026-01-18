@@ -11,12 +11,12 @@
 
     <div class="flex flex-col sm:flex-row gap-4 mb-12">
         <div class="flex gap-2 bg-gray-950 p-2 rounded-2xl w-full sm:w-fit border border-gray-800 backdrop-blur-md shadow-2xl">
-            <a href="{{ route('dashboard.siswa') }}" 
+            <a href="{{ route('dashboard.siswa') }}"
                class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 {{ Request::routeIs('dashboard.siswa') ? 'bg-cyan-600 text-white shadow-xl shadow-cyan-600/30' : 'text-gray-500 hover:text-white hover:bg-gray-800' }}">
                 <i class="fas fa-user-graduate"></i>
                 Siswa
             </a>
-            <button @click="showSwitchModal = true; switchRoleLabel = 'Guru'" 
+            <button @click="showSwitchModal = true; switchRoleLabel = 'Guru'"
                class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 text-gray-500 hover:text-white hover:bg-gray-800">
                 <i class="fas fa-chalkboard-teacher"></i>
                 Guru
@@ -25,6 +25,7 @@
     </div>
 
     <!-- Content: Stats Section -->
+    @if($hasMagang)
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         <div class="group bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] shadow-2xl hover:border-cyan-500/50 transition-all duration-500 hover:scale-[1.02]">
             <div class="flex justify-between items-start mb-6">
@@ -70,6 +71,20 @@
             <p class="text-gray-500 text-xs font-medium italic">Evaluasi Mitra Industri (DUDI)</p>
         </div>
     </div>
+    @else
+    <div class="bg-amber-600/10 border-2 border-amber-500/30 p-8 rounded-[3rem] shadow-2xl shadow-amber-600/10 flex flex-col md:flex-row items-center gap-6 mb-10">
+        <div class="w-16 h-16 shrink-0 bg-amber-500 text-white rounded-3xl flex items-center justify-center shadow-2xl shadow-amber-500/50">
+            <i class="fas fa-exclamation-triangle text-2xl"></i>
+        </div>
+        <div>
+            <h4 class="text-amber-400 font-black uppercase tracking-widest text-sm mb-1">Belum Ada Penempatan Magang</h4>
+            <p class="text-gray-200 font-medium">Anda belum memiliki penempatan magang. Silakan jelajahi mitra industri (DUDI) dan ajukan pendaftaran untuk memulai program magang Anda.</p>
+            <a href="{{ route('siswa.dudi') }}" class="inline-block mt-4 px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-sm transition-all">
+                Jelajahi DUDI <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+    </div>
+    @endif
 
     <!-- Announcement Feed -->
     <div class="bg-blue-600/10 border-2 border-blue-500/30 p-8 rounded-[3rem] shadow-2xl shadow-blue-600/10 flex flex-col md:flex-row items-center gap-6">

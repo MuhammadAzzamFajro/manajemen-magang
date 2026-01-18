@@ -51,6 +51,7 @@ class AuthController extends Controller
 
             $user = Auth::user();
             $request->session()->put('active_role', $user->role);
+            $request->session()->put('active_name', $user->name);
 
             if ($user->role === 'Guru') {
                 return redirect()->intended('dashboard/guru');
@@ -100,6 +101,8 @@ class AuthController extends Controller
         }
 
         Auth::login($user);
+        request()->session()->put('active_role', $user->role);
+        request()->session()->put('active_name', $user->name);
 
         return $user->role === 'Guru'
                ? redirect()->route('dashboard.guru')

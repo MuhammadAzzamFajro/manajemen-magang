@@ -9,11 +9,6 @@
             <h1 class="text-4xl font-black text-white uppercase tracking-tighter">Eksplorasi Mitra</h1>
             <p class="text-gray-400 mt-2 font-medium">Temukan tempat magang impian Anda di industri terbaik</p>
         </div>
-        <div class="flex gap-2 bg-gray-900 p-2 rounded-2xl border border-gray-700">
-            <button @click="category = 'Semua'" :class="category === 'Semua' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-white'" class="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all">Semua</button>
-            <button @click="category = 'Populer'" :class="category === 'Populer' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-white'" class="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all">Populer</button>
-            <button @click="category = 'Terdekat'" :class="category === 'Terdekat' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-white'" class="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all">Terdekat</button>
-        </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -21,7 +16,7 @@
         <div class="bg-gray-800/40 border border-gray-700/50 rounded-[3rem] p-10 hover:bg-gray-800/80 transition-all duration-500 group relative overflow-hidden flex flex-col backdrop-blur-sm hover:shadow-2xl hover:shadow-cyan-500/10 hover:-translate-y-2">
             <!-- Decorative Icon -->
             <div class="absolute -right-4 -top-4 w-32 h-32 bg-cyan-600 opacity-[0.03] rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-            
+
             <div class="w-16 h-16 bg-gradient-to-br from-cyan-600 to-blue-700 rounded-3xl flex items-center justify-center text-white mb-8 group-hover:rotate-6 transition-transform shadow-xl shadow-cyan-600/20">
                 <i class="fas fa-industry text-3xl"></i>
             </div>
@@ -59,60 +54,128 @@
     <template x-teleport="body">
         <div x-show="selectedDudi" class="fixed inset-0 z-50 flex items-center justify-center p-4" x-cloak>
             <div class="absolute inset-0 bg-black/90 backdrop-blur-xl" @click="selectedDudi = null"></div>
-            
-            <div class="relative bg-gray-800 border-2 border-gray-700 w-full max-w-2xl rounded-[3.5rem] shadow-2xl p-12 overflow-y-auto max-h-[95vh]">
-                <div class="flex justify-between items-start mb-12">
-                    <div class="w-16 h-16 bg-cyan-600 rounded-3xl flex items-center justify-center text-white shadow-xl rotate-3">
-                        <i class="fas fa-building text-3xl"></i>
+
+            <div class="relative bg-gradient-to-br from-gray-800 via-gray-900 to-gray-950 border-2 border-gray-700 w-full max-w-4xl rounded-[3.5rem] shadow-2xl p-12 overflow-y-auto max-h-[95vh]">
+                <div class="flex justify-between items-start mb-8">
+                    <div class="flex items-start gap-6">
+                        <div class="w-20 h-20 bg-gradient-to-br from-cyan-600 to-blue-700 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-cyan-600/30 shrink-0">
+                            <i class="fas fa-industry text-4xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-4xl font-black text-white tracking-tighter uppercase mb-2" x-text="selectedDudi.nama"></h2>
+                            <p class="text-cyan-400 font-black tracking-[0.15em] text-xs uppercase mb-2" x-text="selectedDudi.bidang_usaha || 'Bidang Usaha Industri'"></p>
+                            <div class="flex items-center gap-2 text-gray-400">
+                                <i class="fas fa-map-marker-alt text-cyan-500"></i>
+                                <span class="text-sm font-medium" x-text="selectedDudi.alamat ? (selectedDudi.alamat.length > 50 ? selectedDudi.alamat.substring(0, 50) + '...' : selectedDudi.alamat) : 'Lokasi belum diperbarui'"></span>
+                            </div>
+                        </div>
                     </div>
-                    <button @click="selectedDudi = null" class="text-gray-500 hover:text-white transition-all hover:rotate-90 text-2xl"><i class="fas fa-times"></i></button>
+                    <button @click="selectedDudi = null" class="text-gray-500 hover:text-white transition-all hover:rotate-90 text-2xl p-2 hover:bg-gray-800 rounded-xl"><i class="fas fa-times"></i></button>
+                </div>
+
+                <div class="border-b border-gray-700/50 mb-10 pb-8" x-if="selectedDudi">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-gray-900/50 p-4 rounded-2xl border border-gray-700/30">
+                            <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-2">Quota Tersedia</p>
+                            <p class="text-3xl font-black text-cyan-400">4</p>
+                            <p class="text-gray-600 text-xs mt-1">Posisi Magang</p>
+                        </div>
+                        <div class="bg-gray-900/50 p-4 rounded-2xl border border-gray-700/30">
+                            <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-2">Status</p>
+                            <p class="text-2xl font-black text-green-400">Aktif</p>
+                            <p class="text-gray-600 text-xs mt-1">Penerimaan Buka</p>
+                        </div>
+                        <div class="bg-gray-900/50 p-4 rounded-2xl border border-gray-700/30">
+                            <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-2">Durasi</p>
+                            <p class="text-2xl font-black text-yellow-400">4-6</p>
+                            <p class="text-gray-600 text-xs mt-1">Bulan</p>
+                        </div>
+                        <div class="bg-gray-900/50 p-4 rounded-2xl border border-gray-700/30">
+                            <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-2">Pelatihan</p>
+                            <p class="text-2xl font-black text-blue-400"><i class="fas fa-check"></i></p>
+                            <p class="text-gray-600 text-xs mt-1">Disediakan</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div x-if="selectedDudi">
-                    <h2 class="text-4xl font-black text-white tracking-tighter uppercase mb-2" x-text="selectedDudi.nama"></h2>
-                    <p class="text-cyan-500 font-black tracking-[0.2em] text-xs uppercase mb-10" x-text="selectedDudi.bidang_usaha || 'Bidang Usaha Mitra'"></p>
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                        <div class="bg-gray-900/60 p-6 rounded-3xl border border-gray-700/50">
-                            <h4 class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4">Informasi Kontak</h4>
-                            <div class="space-y-4">
-                                <div class="flex items-center gap-4 text-gray-200">
-                                    <div class="w-10 h-10 bg-gray-800 rounded-2xl flex items-center justify-center text-cyan-400 shadow-md">
-                                        <i class="fas fa-phone-alt"></i>
-                                    </div>
-                                    <span class="font-bold text-sm" x-text="selectedDudi.telepon || '+62 ---'"></span>
+                        <!-- Kontak Section -->
+                        <div class="bg-gray-900/60 p-8 rounded-3xl border border-gray-700/50 hover:border-cyan-600/30 transition-all">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-10 h-10 bg-cyan-600/20 rounded-2xl flex items-center justify-center text-cyan-400">
+                                    <i class="fas fa-phone-alt"></i>
                                 </div>
-                                <div class="flex items-center gap-4 text-gray-200">
-                                    <div class="w-10 h-10 bg-gray-800 rounded-2xl flex items-center justify-center text-cyan-400 shadow-md">
-                                        <i class="fas fa-envelope"></i>
-                                    </div>
-                                    <span class="font-bold text-sm" x-text="selectedDudi.email || 'contact@mitra.com'"></span>
-                                </div>
+                                <h4 class="text-sm font-black text-gray-400 uppercase tracking-widest">Nomor Telepon</h4>
                             </div>
+                            <a :href="'tel:' + (selectedDudi.telepon || '')" class="block text-white font-bold text-lg hover:text-cyan-400 transition-colors" x-text="selectedDudi.telepon || '(Belum Tersedia)'"></a>
                         </div>
-                        <div class="bg-gray-900/60 p-6 rounded-3xl border border-gray-700/50">
-                            <h4 class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4">Penanggung Jawab</h4>
+
+                        <div class="bg-gray-900/60 p-8 rounded-3xl border border-gray-700/50 hover:border-cyan-600/30 transition-all">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-10 h-10 bg-cyan-600/20 rounded-2xl flex items-center justify-center text-cyan-400">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <h4 class="text-sm font-black text-gray-400 uppercase tracking-widest">Email</h4>
+                            </div>
+                            <a :href="'mailto:' + (selectedDudi.email || '')" class="block text-white font-bold text-sm hover:text-cyan-400 transition-colors break-all" x-text="selectedDudi.email || '(Belum Tersedia)'"></a>
+                        </div>
+
+                        <!-- Penanggung Jawab Section -->
+                        <div class="bg-gray-900/60 p-8 rounded-3xl border border-gray-700/50 hover:border-green-600/30 transition-all md:col-span-2">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-10 h-10 bg-green-600/20 rounded-2xl flex items-center justify-center text-green-400">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <h4 class="text-sm font-black text-gray-400 uppercase tracking-widest">Penanggung Jawab / HR</h4>
+                            </div>
                             <div class="flex items-center gap-4">
-                                <div class="w-14 h-14 bg-gradient-to-tr from-cyan-600 to-blue-500 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg" x-text="(selectedDudi.penanggung_jawab || 'P').charAt(0)"></div>
+                                <div class="w-16 h-16 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg shrink-0" x-text="(selectedDudi.penanggung_jawab || 'P').charAt(0).toUpperCase()"></div>
                                 <div>
                                     <p class="text-white font-black text-lg" x-text="selectedDudi.penanggung_jawab || 'Belum Ada Nama'"></p>
-                                    <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest mt-0.5">HR Industrial Relation</p>
+                                    <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Divisi Hubungan Industri</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Lokasi & Deskripsi -->
                     <div class="bg-gray-900/60 p-8 rounded-3xl border border-gray-700/50 mb-12">
-                        <h4 class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4">Lokasi Pabrik / Kantor</h4>
-                        <p class="text-gray-300 leading-relaxed font-medium italic" x-text="selectedDudi.alamat || 'Alamat lengkap mitra industri tidak tersedia di database.'"></p>
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 bg-purple-600/20 rounded-2xl flex items-center justify-center text-purple-400">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <h4 class="text-sm font-black text-gray-400 uppercase tracking-widest">Lokasi Kantor / Pabrik</h4>
+                        </div>
+                        <p class="text-gray-300 leading-relaxed font-medium text-base" x-text="selectedDudi.alamat || 'Alamat lengkap mitra industri tidak tersedia di database.'"></p>
                     </div>
 
-                    <div class="flex gap-4">
-                        <button class="flex-1 py-5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-[1.5rem] font-black uppercase tracking-widest transition-all" @click="selectedDudi = null">Kembali</button>
+                    <!-- Deskripsi Bidang Usaha -->
+                    <div class="bg-gray-900/60 p-8 rounded-3xl border border-gray-700/50 mb-12">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 bg-blue-600/20 rounded-2xl flex items-center justify-center text-blue-400">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <h4 class="text-sm font-black text-gray-400 uppercase tracking-widest">Bidang Usaha</h4>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-4 py-2 bg-blue-600/20 border border-blue-600/50 text-blue-300 rounded-full text-sm font-bold" x-text="selectedDudi.bidang_usaha || 'Industri Umum'"></span>
+                        </div>
+                    </div>
+
+                    <!-- CTA Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button class="flex-1 py-4 px-6 bg-gray-700 hover:bg-gray-600 text-gray-100 rounded-2xl font-black uppercase tracking-widest transition-all hover:shadow-xl active:scale-95 flex items-center justify-center gap-2" @click="selectedDudi = null">
+                            <i class="fas fa-arrow-left"></i>
+                            Kembali
+                        </button>
                         <form action="{{ route('siswa.magang.apply') }}" method="POST" class="flex-1">
                             @csrf
                             <input type="hidden" name="dudi_id" :value="selectedDudi.id">
-                            <button type="submit" class="w-full py-5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-[1.5rem] font-black uppercase tracking-widest shadow-2xl shadow-cyan-600/30 hover:scale-[1.03] transition-all">Daftar Magang</button>
+                            <button type="submit" class="w-full py-4 px-6 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-2xl font-black uppercase tracking-widest shadow-2xl shadow-cyan-600/30 hover:shadow-cyan-600/50 hover:scale-[1.02] transition-all active:scale-95 flex items-center justify-center gap-2">
+                                <i class="fas fa-paper-plane"></i>
+                                Ajukan Magang Sekarang
+                            </button>
                         </form>
                     </div>
                 </div>

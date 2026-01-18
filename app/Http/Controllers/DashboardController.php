@@ -7,6 +7,7 @@ use App\Models\Dudi;
 use App\Models\Kelas;
 use App\Models\Magang;
 use App\Models\Logbook;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -167,9 +168,26 @@ class DashboardController extends Controller
         $user = Auth::user();
         if (!$user) return null;
 
-        $siswa = Siswa::where('user_id', $user->id)
-            ->with(['kelas', 'user'])
-            ->first();
+        $activeEmail = session('active_email');
+
+        $siswa = null;
+
+        // Jika ada active_email, cari siswa berdasarkan email tersebut (untuk switch role)
+        if ($activeEmail) {
+            $targetUser = User::where('email', $activeEmail)->first();
+            if ($targetUser) {
+                $siswa = Siswa::where('user_id', $targetUser->id)
+                    ->with(['kelas', 'user'])
+                    ->first();
+            }
+        }
+
+        // Fallback ke siswa dari user yang login saat ini
+        if (!$siswa) {
+            $siswa = Siswa::where('user_id', $user->id)
+                ->with(['kelas', 'user'])
+                ->first();
+        }
 
         // Fix for "novtu" and others: Auto-create Siswa profile if role is Siswa
         if (!$siswa && $user->role === 'Siswa') {
@@ -192,13 +210,58 @@ class DashboardController extends Controller
 
     public function siswa()
     {
-        $siswa = $this->getLoggedInSiswa();
-        $namaSiswa = session('active_name', $siswa ? $siswa->nama : (Auth::user()->name ?? 'User'));
+        $user = Auth::user();
+
+        // Jika ada active_name di session, artinya user sedang switch role
+        // Kita perlu ambil siswa dari email yang tersimpan di session
+        $activeName = session('active_name');
+        $activeEmail = session('active_email');
+
+        $siswa = null;
+
+        // Jika ada active_email, cari siswa berdasarkan email tersebut
+        if ($activeEmail) {
+            $targetUser = User::where('email', $activeEmail)->first();
+            if ($targetUser) {
+                $siswa = Siswa::where('user_id', $targetUser->id)
+                    ->with(['kelas', 'user'])
+                    ->first();
+            }
+        }
+
+        // Fallback ke siswa dari user yang login saat ini
+        if (!$siswa && $user) {
+            $siswa = Siswa::where('user_id', $user->id)
+                ->with(['kelas', 'user'])
+                ->first();
+        }
+
+        // Auto-create siswa jika tidak ada dan role adalah Siswa
+        if (!$siswa && $user && $user->role === 'Siswa') {
+            $kelas = Kelas::first() ?? Kelas::create(['nama' => 'XII RPL 1']);
+            $siswa = Siswa::create([
+                'user_id' => $user->id,
+                'nis' => 'NIS-' . str_pad($user->id, 5, '0', STR_PAD_LEFT),
+                'nama' => $user->name,
+                'kelas_id' => $kelas->id,
+                'alamat' => 'Belum diisi',
+            ]);
+            $siswa->load(['kelas', 'user']);
+        }
+
+        $namaSiswa = $activeName ?? ($siswa?->nama ?? $user?->name ?? 'User');
 
         $logbookCount = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->count();
         $approvedLogbook = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->where('status', 'Setuju')->count();
         $pendingLogbook = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->where('status', 'Menunggu')->count();
         $rejectedLogbook = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->where('status', 'Tolak')->count();
+
+        // Cek apakah siswa sudah memiliki penempatan magang aktif
+        $hasMagang = $siswa ? Magang::where('siswa_id', $siswa->id)->where('status', 'Aktif')->exists() : false;
+
+        // Hanya tampilkan nilai dan kehadiran jika siswa sudah memiliki penempatan magang
+        $presentRate = $hasMagang ? 98 : null;
+        $grade = $hasMagang ? 'A-' : null;
 
         return view('dashboard.siswa.index', [
             'namaSiswa' => $namaSiswa,
@@ -206,8 +269,9 @@ class DashboardController extends Controller
             'approvedLogbook' => $approvedLogbook,
             'pendingLogbook' => $pendingLogbook,
             'rejectedLogbook' => $rejectedLogbook,
-            'presentRate' => 98,
-            'grade' => 'A-',
+            'presentRate' => $presentRate,
+            'grade' => $grade,
+            'hasMagang' => $hasMagang,
             'siswa' => $siswa
         ]);
     }
