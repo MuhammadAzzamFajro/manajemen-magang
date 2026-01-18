@@ -50,5 +50,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/logbook', [DashboardController::class, 'siswaLogbook'])->name('logbook');
         Route::post('/logbook', [DashboardController::class, 'storeLogbook'])->name('logbook.store');
+
+        Route::get('/kehadiran', [\App\Http\Controllers\AttendanceController::class, 'index'])->name('kehadiran');
+        Route::post('/kehadiran', [\App\Http\Controllers\AttendanceController::class, 'store'])->name('kehadiran.store');
     });
 });

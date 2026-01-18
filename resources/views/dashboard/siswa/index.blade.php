@@ -27,18 +27,18 @@
     <!-- Content: Stats Section -->
     @if($hasMagang)
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        <div class="group bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] shadow-2xl hover:border-cyan-500/50 transition-all duration-500 hover:scale-[1.02]">
+        <a href="{{ route('siswa.kehadiran') }}" class="group bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] shadow-2xl hover:border-cyan-500/50 transition-all duration-500 hover:scale-[1.02] block">
             <div class="flex justify-between items-start mb-6">
                 <div class="w-14 h-14 bg-cyan-600/20 rounded-2xl flex items-center justify-center text-cyan-500 group-hover:bg-cyan-600 group-hover:text-white transition-all duration-500">
                     <i class="fas fa-calendar-check text-2xl"></i>
                 </div>
-                <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Kehadiran</span>
+                <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Kehadiran hari ini</span>
             </div>
             <h3 class="text-4xl font-black text-white mb-4">{{ $presentRate }}%</h3>
             <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden border border-gray-700/50">
                 <div class="bg-gradient-to-r from-cyan-600 to-blue-500 h-full rounded-full" style="width: {{ $presentRate }}%"></div>
             </div>
-        </div>
+        </a>
 
         <div class="group bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] shadow-2xl hover:border-green-500/50 transition-all duration-500 hover:scale-[1.02]">
             <div class="flex justify-between items-start mb-6">
@@ -63,12 +63,26 @@
         <div class="group bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] shadow-2xl hover:border-yellow-500/50 transition-all duration-500 hover:scale-[1.02] lg:col-span-1 md:col-span-2 lg:col-span-1">
             <div class="flex justify-between items-start mb-6">
                 <div class="w-14 h-14 bg-yellow-600/20 rounded-2xl flex items-center justify-center text-yellow-500 group-hover:bg-yellow-600 group-hover:text-white transition-all duration-500">
-                    <i class="fas fa-star text-2xl"></i>
+                    <i class="fas fa-briefcase text-2xl"></i>
                 </div>
-                <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Penilaian</span>
+                <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Status Magang</span>
             </div>
-            <h3 class="text-4xl font-black text-white mb-2">{{ $grade }}</h3>
-            <p class="text-gray-500 text-xs font-medium italic">Evaluasi Mitra Industri (DUDI)</p>
+            <h3 class="text-4xl font-black text-white mb-2">{{ $internshipStatus ?? 'Belum Ditentukan' }}</h3>
+            @if($internshipCompany)
+                <p class="text-cyan-400 text-sm font-bold mb-3">{{ $internshipCompany }}</p>
+            @endif
+            @if($internshipProgress)
+                <div class="mb-2">
+                    <div class="flex justify-between text-xs text-gray-400 mb-1">
+                        <span>{{ $internshipProgress['days_passed'] }}/{{ $internshipProgress['total_days'] }} hari</span>
+                        <span>{{ $internshipProgress['percentage'] }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden border border-gray-700/50">
+                        <div class="bg-gradient-to-r from-yellow-600 to-orange-500 h-full rounded-full transition-all duration-500" style="width: {{ $internshipProgress['percentage'] }}%"></div>
+                    </div>
+                </div>
+            @endif
+            <p class="text-gray-500 text-xs font-medium italic">Status Penempatan Magang</p>
         </div>
     </div>
     @else

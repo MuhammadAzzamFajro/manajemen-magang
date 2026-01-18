@@ -8,9 +8,11 @@ use App\Models\Kelas;
 use App\Models\Magang;
 use App\Models\Logbook;
 use App\Models\User;
+use App\Models\Attendance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\PenempatanMagang;
 
 class DashboardController extends Controller
 {
@@ -259,9 +261,55 @@ class DashboardController extends Controller
         // Cek apakah siswa sudah memiliki penempatan magang aktif
         $hasMagang = $siswa ? Magang::where('siswa_id', $siswa->id)->where('status', 'Aktif')->exists() : false;
 
-        // Hanya tampilkan nilai dan kehadiran jika siswa sudah memiliki penempatan magang
-        $presentRate = $hasMagang ? 98 : null;
-        $grade = $hasMagang ? 'A-' : null;
+        // Hitung persentase kehadiran berdasarkan data aktual
+        $presentRate = null;
+        if ($hasMagang && $siswa) {
+            $currentMonth = now()->month;
+            $currentYear = now()->year;
+
+            $attendances = Attendance::where('siswa_id', $siswa->id)
+                ->whereYear('tanggal', $currentYear)
+                ->whereMonth('tanggal', $currentMonth)
+                ->get();
+
+            $totalDays = $attendances->count();
+            $presentDays = $attendances->where('status', 'Hadir')->count();
+
+            $presentRate = $totalDays > 0 ? round(($presentDays / $totalDays) * 100) : 0;
+        }
+
+        // Get internship status from magangs_siswa table
+        $internshipStatus = null;
+        $internshipCompany = null;
+        $internshipProgress = null;
+        if ($siswa) {
+            $magang = Magang::where('siswa_id', $siswa->id)->first();
+            if ($magang) {
+                $internshipStatus = 'Sedang Magang';
+                $internshipCompany = $magang->dudi->nama ?? null;
+                
+                // Calculate internship progress (90 days total)
+                if ($magang->tanggal_mulai) {
+                    $startDate = \Carbon\Carbon::parse($magang->tanggal_mulai);
+                    $currentDate = \Carbon\Carbon::now();
+                    
+                    // Simple calculation: get absolute difference in days
+                    $daysPassed = abs($startDate->diffInDays($currentDate));
+                    $totalDays = 90; // 6 bulan = 90 hari kerja
+                    
+                    // Cap at maximum and ensure minimum
+                    $daysPassed = max(0, min($daysPassed, $totalDays));
+                    $daysPassed = round($daysPassed); // Round to a whole number
+                    $percentage = round(($daysPassed / $totalDays) * 100);
+                    
+                    $internshipProgress = [
+                        'days_passed' => $daysPassed,
+                        'total_days' => $totalDays,
+                        'percentage' => $percentage
+                    ];
+                }
+            }
+        }
 
         return view('dashboard.siswa.index', [
             'namaSiswa' => $namaSiswa,
@@ -270,7 +318,9 @@ class DashboardController extends Controller
             'pendingLogbook' => $pendingLogbook,
             'rejectedLogbook' => $rejectedLogbook,
             'presentRate' => $presentRate,
-            'grade' => $grade,
+            'internshipStatus' => $internshipStatus,
+            'internshipCompany' => $internshipCompany,
+            'internshipProgress' => $internshipProgress,
             'hasMagang' => $hasMagang,
             'siswa' => $siswa
         ]);
@@ -301,7 +351,7 @@ class DashboardController extends Controller
             'alamat' => 'nullable|string',
         ]);
 
-        $user = \App\Models\User::create([
+        $user = User::create([
             'name' => $request->nama,
             'email' => $request->email,
             'password' => \Illuminate\Support\Facades\Hash::make('password123'),
