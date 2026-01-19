@@ -7,6 +7,7 @@ use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Inertia\Inertia;
 
 class AttendanceController extends Controller
 {
@@ -27,7 +28,7 @@ class AttendanceController extends Controller
             ->limit(10)
             ->get();
 
-        return view('dashboard.siswa.kehadiran', compact('siswa', 'attendanceStats', 'recentAttendances'));
+        return Inertia::render('Dashboard/Siswa/Kehadiran', compact('siswa', 'attendanceStats', 'recentAttendances'));
     }
 
     public function store(Request $request)
@@ -58,10 +59,7 @@ class AttendanceController extends Controller
             'catatan' => $request->catatan,
         ], ['siswa_id', 'tanggal'], ['status', 'catatan']);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Kehadiran berhasil dicatat.'
-        ]);
+        return back()->with('success', 'Kehadiran berhasil dicatat.');
     }
 
     private function getLoggedInSiswa()

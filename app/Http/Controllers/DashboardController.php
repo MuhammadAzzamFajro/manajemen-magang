@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PenempatanMagang;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
@@ -55,7 +56,7 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get() ?? collect();
 
-            return view('dashboard.guru.index', compact('stats', 'magangs', 'latestSiswas', 'pendingMagangs', 'pendingLogbooks'));
+            return Inertia::render('Dashboard/Guru/Index', compact('stats', 'magangs', 'latestSiswas', 'pendingMagangs', 'pendingLogbooks'));
         } catch (\Exception $e) {
             // Jika ada error, return dengan data kosong
             $stats = [
@@ -67,7 +68,7 @@ class DashboardController extends Controller
                 'pendingMagang' => 0,
             ];
 
-            return view('dashboard.guru.index', [
+            return Inertia::render('Dashboard/Guru/Index', [
                 'stats' => $stats,
                 'magangs' => collect(),
                 'latestSiswas' => collect(),
@@ -161,12 +162,7 @@ class DashboardController extends Controller
             ->limit(20)
             ->get();
 
-        return view('search.results', [
-            'query' => $query,
-            'logbooks' => $logbooks,
-            'magangs' => $magangs,
-            'dudis' => $dudis,
-        ]);
+        return Inertia::render('Search/Results', compact('logbooks', 'magangs', 'dudis', 'query'));
     }
 
     private function getLoggedInSiswa()
@@ -328,7 +324,7 @@ class DashboardController extends Controller
             }
         }
 
-        return view('dashboard.siswa.index', [
+        return Inertia::render('Dashboard/Siswa/Index', [
             'namaSiswa' => $namaSiswa,
             'logbookCount' => $logbookCount,
             'approvedLogbook' => $approvedLogbook,
@@ -355,7 +351,7 @@ class DashboardController extends Controller
 
         $siswas = Siswa::with(['kelas', 'user'])->latest()->get();
         $kelases = Kelas::all();
-        return view('dashboard.guru.siswa', compact('siswas', 'kelases'));
+        return Inertia::render('Dashboard/Guru/Siswa', compact('siswas', 'kelases'));
     }
 
     public function storeSiswa(Request $request)
@@ -399,7 +395,7 @@ class DashboardController extends Controller
     public function guruDudi()
     {
         $dudis = Dudi::latest()->get();
-        return view('dashboard.guru.dudi', compact('dudis'));
+        return Inertia::render('Dashboard/Guru/Dudi', compact('dudis'));
     }
 
     public function guruMagang()
@@ -407,7 +403,7 @@ class DashboardController extends Controller
         $magangs = Magang::with(['siswa', 'dudi'])->latest()->get();
         $siswas = Siswa::orderBy('nama')->get();
         $dudis = Dudi::orderBy('nama')->get();
-        return view('dashboard.guru.magang', compact('magangs', 'siswas', 'dudis'));
+        return Inertia::render('Dashboard/Guru/Magang', compact('magangs', 'siswas', 'dudis'));
     }
 
     public function storeMagang(Request $request)
@@ -436,28 +432,28 @@ class DashboardController extends Controller
     public function guruLogbook()
     {
         $logbooks = Logbook::with(['siswa.user', 'siswa.kelas'])->latest()->get();
-        return view('dashboard.guru.logbook', compact('logbooks'));
+        return Inertia::render('Dashboard/Guru/Logbook', compact('logbooks'));
     }
 
     // Siswa Sub-pages
     public function siswaDudi()
     {
         $dudis = Dudi::latest()->get();
-        return view('dashboard.siswa.dudi', compact('dudis'));
+        return Inertia::render('Dashboard/Siswa/Dudi', compact('dudis'));
     }
 
     public function siswaMagang()
     {
         $siswa = $this->getLoggedInSiswa();
         $magangs = Magang::where('siswa_id', ($siswa?->id) ?? 0)->with('dudi')->get();
-        return view('dashboard.siswa.magang', compact('magangs', 'siswa'));
+        return Inertia::render('Dashboard/Siswa/Magang', compact('magangs', 'siswa'));
     }
 
     public function siswaLogbook()
     {
         $siswa = $this->getLoggedInSiswa();
         $logbooks = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->latest()->get();
-        return view('dashboard.siswa.logbook', compact('logbooks', 'siswa'));
+        return Inertia::render('Dashboard/Siswa/Logbook', compact('logbooks', 'siswa'));
     }
 
     // POST Actions

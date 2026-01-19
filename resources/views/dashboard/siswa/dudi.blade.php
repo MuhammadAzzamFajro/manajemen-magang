@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.blade_app')
 
 @section('title', 'Eksplorasi DUDI - Siswa')
 
