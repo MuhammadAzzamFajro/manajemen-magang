@@ -503,7 +503,16 @@ class DashboardController extends Controller
             'dudi_id' => 'required|exists:dudis,id',
         ]);
 
-        // Check if already applied
+        // Check if student already has ANY active internship
+        $activeInternship = Magang::where('siswa_id', $siswa->id)
+            ->where('status', 'Aktif')
+            ->exists();
+
+        if ($activeInternship) {
+            return back()->with('error', 'Anda memiliki program magang yang sedang aktif.');
+        }
+
+        // Check if already applied to THIS dudi (optional, but good practice to keep)
         $exists = Magang::where('siswa_id', $siswa->id)
             ->where('dudi_id', $request->dudi_id)
             ->exists();
