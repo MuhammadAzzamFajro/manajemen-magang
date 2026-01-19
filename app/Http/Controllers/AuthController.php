@@ -105,8 +105,8 @@ class AuthController extends Controller
         request()->session()->put('active_name', $user->name);
 
         return $user->role === 'Guru'
-               ? redirect()->route('dashboard.guru')
-               : redirect()->route('dashboard.siswa');
+               ? redirect()->route('dashboard.guru')->with('success', 'Registrasi berhasil! Selamat datang di Dashboard Guru.')
+               : redirect()->route('dashboard.siswa')->with('success', 'Registrasi berhasil! Selamat datang di Dashboard Siswa.');
     }
 
     public function logout(Request $request)

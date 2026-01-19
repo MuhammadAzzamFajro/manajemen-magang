@@ -127,5 +127,55 @@
             </form>
         </div>
     </div>
+    <!-- Global Notification System -->
+    <script>
+        function showNotification(message, type = 'success') {
+            const existingNotifications = document.querySelectorAll('.global-notification');
+            existingNotifications.forEach(n => n.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `global-notification fixed top-6 right-6 px-8 py-4 rounded-2xl font-bold shadow-2xl z-[200] transform transition-all duration-500 translate-y-[-20px] opacity-0 flex items-center gap-4 ${
+                type === 'success' ? 'bg-green-600 text-white shadow-green-600/20' : 'bg-red-600 text-white shadow-red-600/20'
+            }`;
+            notification.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                    <i class="fas ${type === 'success' ? 'fa-check' : 'fa-exclamation'}"></i>
+                </div>
+                <span class="text-sm tracking-wide">${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+
+            // Animate in
+            requestAnimationFrame(() => {
+                notification.classList.remove('translate-y-[-20px]', 'opacity-0');
+            });
+
+            // Remove after 3s
+            setTimeout(() => {
+                notification.classList.add('translate-y-[-20px]', 'opacity-0');
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        @if(session('success'))
+            document.addEventListener('DOMContentLoaded', () => {
+                showNotification("{{ session('success') }}", 'success');
+            });
+        @endif
+
+        @if(session('error'))
+            document.addEventListener('DOMContentLoaded', () => {
+                showNotification("{{ session('error') }}", 'error');
+            });
+        @endif
+        
+        @if($errors->any())
+             // Optional: Show first validation error as notification if you want
+             // document.addEventListener('DOMContentLoaded', () => {
+             //    showNotification("{{ $errors->first() }}", 'error');
+             // });
+        @endif
+    </script>
 </body>
 </html>
