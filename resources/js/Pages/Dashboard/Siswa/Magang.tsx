@@ -68,7 +68,7 @@ export default function SiswaMagang({ magangs }: SiswaMagangProps) {
                                         </div>
                                         <div>
                                             <CardTitle className="text-lg">{magang.dudi?.nama || 'TBA'}</CardTitle>
-                                            <CardDescription>{magang.judul_magang || 'Posisi Magang'}</CardDescription>
+                                            <CardDescription>{magang.judul_magang}</CardDescription>
                                         </div>
                                     </div>
                                     {getStatusBadge(magang.status)}
@@ -108,11 +108,13 @@ export default function SiswaMagang({ magangs }: SiswaMagangProps) {
                                 )}
                             </CardContent>
                             <CardFooter>
-                                <Button variant="outline" asChild>
-                                    <Link href="/dashboard/siswa/logbook">
-                                        Buka Jurnal <ArrowRight className="w-4 h-4 ml-2" />
-                                    </Link>
-                                </Button>
+                                {magang.status === 'Aktif' && (
+                                    <Button variant="outline" asChild>
+                                        <Link href="/dashboard/siswa/logbook">
+                                            Buka Jurnal <ArrowRight className="w-4 h-4 ml-2" />
+                                        </Link>
+                                    </Button>
+                                )}
                             </CardFooter>
                         </Card>
                     ))}
@@ -123,59 +125,19 @@ export default function SiswaMagang({ magangs }: SiswaMagangProps) {
                         <Rocket className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
                         <h3 className="text-lg font-medium mb-1">Belum Ada Penempatan</h3>
                         <p className="text-muted-foreground text-sm mb-4">
-                            Anda belum memiliki penempatan magang. Ajukan sekarang!
+                            Anda belum memiliki penempatan magang aktif.
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                        <div className="flex justify-center">
                             <Button asChild>
                                 <Link href="/dashboard/siswa/dudi">
                                     Jelajahi Mitra DUDI
                                 </Link>
                             </Button>
-                            <Button variant="outline" onClick={() => setIsAjukanModalOpen(true)}>
-                                Ajukan Mandiri
-                            </Button>
                         </div>
                     </CardContent>
                 </Card>
             )}
-
-            {/* Modal Ajukan Mandiri */}
-            <Dialog open={isAjukanModalOpen} onOpenChange={setIsAjukanModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Pengajuan Magang Mandiri</DialogTitle>
-                        <DialogDescription>
-                            Ajukan tempat magang yang Anda temukan sendiri
-                        </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={(e) => { e.preventDefault(); alert('Pengajuan berhasil dikirim!'); setIsAjukanModalOpen(false); }} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label>Nama Perusahaan</Label>
-                            <Input placeholder="PT. Example Indonesia" required />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Posisi</Label>
-                                <Input placeholder="Web Developer" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Tanggal Mulai</Label>
-                                <Input type="date" required />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Alamat</Label>
-                            <Textarea placeholder="Alamat lengkap perusahaan..." rows={3} />
-                        </div>
-                        <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setIsAjukanModalOpen(false)}>
-                                Batal
-                            </Button>
-                            <Button type="submit">Kirim Pengajuan</Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
         </DashboardLayout>
     );
 }
+

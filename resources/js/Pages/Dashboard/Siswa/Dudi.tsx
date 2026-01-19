@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Building2, MapPin, Phone, Mail, User, ArrowRight } from 'lucide-react';
+import { Building2, MapPin, Phone, Mail, User, ArrowRight, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 interface Dudi {
     id: number;
@@ -19,9 +19,10 @@ interface Dudi {
 
 interface SiswaDudiProps {
     dudis: Dudi[];
+    hasMagang: boolean;
 }
 
-export default function SiswaDudi({ dudis }: SiswaDudiProps) {
+export default function SiswaDudi({ dudis, hasMagang }: SiswaDudiProps) {
     const [selectedDudi, setSelectedDudi] = useState<Dudi | null>(null);
     const [isApplying, setIsApplying] = useState(false);
 
@@ -41,6 +42,18 @@ export default function SiswaDudi({ dudis }: SiswaDudiProps) {
             <div className="mb-6">
                 <h1 className="text-2xl font-semibold tracking-tight">Eksplorasi Mitra DUDI</h1>
                 <p className="text-muted-foreground text-sm">Temukan tempat magang yang sesuai dengan minat Anda</p>
+                
+                {hasMagang && (
+                    <div className="mt-4 p-4 rounded-lg bg-yellow-50 border border-yellow-200 flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" />
+                        <div>
+                            <p className="text-sm font-medium text-yellow-900">Anda Memiliki Magang Aktif</p>
+                            <p className="text-sm text-yellow-700 mt-1">
+                                Anda sudah terdaftar dalam program magang. Fitur pengajuan magang baru dinonaktifkan.
+                            </p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* DUDI Grid */}
@@ -133,14 +146,24 @@ export default function SiswaDudi({ dudis }: SiswaDudiProps) {
                                         </div>
                                     </div>
                                 </div>
+                                
+                                {hasMagang && (
+                                    <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-200 text-xs text-yellow-800 flex items-center gap-2">
+                                        <AlertTriangle className="w-4 h-4" />
+                                        Anda sudah memiliki magang aktif. Tidak dapat mengajukan baru.
+                                    </div>
+                                )}
                             </div>
 
                             <DialogFooter className="gap-2">
                                 <Button variant="outline" onClick={() => setSelectedDudi(null)}>
                                     Tutup
                                 </Button>
-                                <Button onClick={() => handleApply(selectedDudi.id)} disabled={isApplying}>
-                                    {isApplying ? 'Mengajukan...' : 'Ajukan Magang'}
+                                <Button 
+                                    onClick={() => handleApply(selectedDudi.id)} 
+                                    disabled={isApplying || hasMagang}
+                                >
+                                    {isApplying ? 'Mengajukan...' : hasMagang ? 'Sudah Ada Magang' : 'Ajukan Magang'}
                                 </Button>
                             </DialogFooter>
                         </>

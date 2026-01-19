@@ -157,12 +157,7 @@ class AuthController extends Controller
             ]);
         }
 
-        // Pastikan email sudah diverifikasi
-        if (!$targetUser->email_verified_at) {
-            return back()->withErrors([
-                'switch_email' => 'Email belum diverifikasi. Silakan verifikasi email terlebih dahulu sebelum beralih role.',
-            ]);
-        }
+        // Note: Email verification tidak digunakan di project ini, jadi skip check
 
         // Simpan role pilihan, email, dan nama di session untuk visual saja
         // Tetap gunakan user yang login saat ini, tapi ubah active_role, active_email, dan active_name-nya

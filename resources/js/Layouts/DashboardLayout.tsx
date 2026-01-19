@@ -174,12 +174,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                              <Button variant="ghost" size="icon" className="lg:hidden rounded-xl bg-slate-50 hover:bg-slate-100" onClick={() => setIsSidebarOpen(true)}>
                                 <Menu className="w-5 h-5 text-slate-600" />
                             </Button>
-                            
-                            <div className="hidden md:flex items-center text-sm font-medium text-slate-400 gap-2">
-                                <span className="hover:text-primary transition-colors cursor-pointer tracking-tight">System</span>
-                                <ChevronRight className="w-3.5 h-3.5 opacity-40" />
-                                <span className="text-slate-900 font-bold tracking-tight">{active_role} Portal</span>
-                            </div>
                         </div>
 
                         <div className="flex items-center gap-4">

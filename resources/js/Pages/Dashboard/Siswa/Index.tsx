@@ -11,7 +11,6 @@ import {
     Briefcase, 
     AlertCircle, 
     ArrowRight, 
-    Bell, 
     CheckCircle2, 
     Clock, 
     MapPin,
@@ -35,15 +34,8 @@ interface SiswaDashboardProps {
     internshipStatus: string | null;
     internshipCompany: string | null;
     internshipProgress: InternshipProgress | null;
+    internshipStartDate: string | null;
     hasMagang: boolean;
-    auth: {
-        user: {
-            id: number;
-            name: string;
-            email: string;
-            role: string;
-        };
-    };
 }
 
 export default function SiswaDashboard({ 
@@ -55,8 +47,15 @@ export default function SiswaDashboard({
     internshipStatus, 
     internshipCompany, 
     internshipProgress, 
+    internshipStartDate,
     hasMagang,
 }: SiswaDashboardProps) {
+
+    const formatDate = (dateStr: string | null) => {
+        if (!dateStr) return null;
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
 
     return (
         <DashboardLayout>
@@ -103,7 +102,7 @@ export default function SiswaDashboard({
                     <CardContent>
                         <div className="text-2xl font-bold">{presentRate ?? 0}%</div>
                         <Progress value={presentRate ?? 0} className="mt-2 h-1" />
-                        <p className="text-xs text-muted-foreground mt-2">Rate kehadiran bulan ini</p>
+                        <p className="text-xs text-muted-foreground mt-2">Rate kehadiran selama magang</p>
                     </CardContent>
                 </Card>
 
@@ -141,6 +140,11 @@ export default function SiswaDashboard({
                         <Badge variant={hasMagang ? "default" : "secondary"} className="mt-2">
                             {internshipStatus || 'Menunggu'}
                         </Badge>
+                        {internshipStartDate && (
+                            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                                <CalendarDays className="w-3 h-3" /> Mulai: {formatDate(internshipStartDate)}
+                            </p>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -207,27 +211,19 @@ export default function SiswaDashboard({
                     </CardContent>
                 </Card>
 
-                {/* Announcement */}
-                <Card>
+                {/* Info Card */}
+                <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
                     <CardHeader>
                         <div className="flex items-center gap-2">
-                            <Bell className="w-4 h-4 text-primary" />
-                            <CardTitle className="text-base">Pengumuman</CardTitle>
+                            <CheckCircle2 className="w-4 h-4 text-primary" />
+                            <CardTitle className="text-base">Tips Magang</CardTitle>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-3">
-                            <p className="text-sm">
-                                Pembekalan magang tahap II akan dilaksanakan Senin depan di Aula Sekolah. Harap hadir tepat waktu!
-                            </p>
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                    <CalendarDays className="w-3 h-3" /> 12 Jan 2024
-                                </span>
-                                <span className="flex items-center gap-1">
-                                    <Clock className="w-3 h-3" /> 08:30 WIB
-                                </span>
-                            </div>
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                            <p>• Isi jurnal harian setiap hari kerja</p>
+                            <p>• Jangan lupa presensi kehadiran</p>
+                            <p>• Hubungi pembimbing jika ada kendala</p>
                         </div>
                     </CardContent>
                 </Card>

@@ -38,15 +38,10 @@ class AttendanceController extends Controller
             'catatan' => 'nullable|string|max:255',
         ]);
 
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Sesi login telah berakhir.']);
-        }
-
-        // Optimized siswa lookup - direct query instead of complex method
-        $siswa = Siswa::where('user_id', $user->id)->first();
+        $siswa = $this->getLoggedInSiswa();
+        
         if (!$siswa) {
-            return response()->json(['success' => false, 'message' => 'Akun Anda tidak terhubung dengan data Siswa.']);
+            return back()->with('error', 'Akun Anda tidak terhubung dengan data Siswa. Hubungi admin.');
         }
 
         $today = Carbon::today();
@@ -93,40 +88,60 @@ class AttendanceController extends Controller
 
     private function getAttendanceStats(Siswa $siswa)
     {
-        $currentMonth = Carbon::now()->month;
-        $currentYear = Carbon::now()->year;
-        $currentDay = Carbon::now()->day;
+        $now = Carbon::now();
+        
+        // Cek data magang untuk mendapatkan tanggal mulai
+        $magang = \App\Models\Magang::where('siswa_id', $siswa->id)->first();
+        
+        // Jika ada magang, gunakan tanggal mulai magang. Jika tidak, fallback ke awal bulan ini.
+        if ($magang && $magang->tanggal_mulai) {
+            $startDate = Carbon::parse($magang->tanggal_mulai);
+        } else {
+            $startDate = $now->copy()->startOfMonth();
+        }
+        
+        // Ambil statistik per status SEJAK TANGGAL MULAI
+        $stats = Attendance::where('siswa_id', $siswa->id)
+            ->whereBetween('tanggal', [$startDate->format('Y-m-d'), $now->format('Y-m-d')])
+            ->select('status', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
 
-        $attendances = Attendance::where('siswa_id', $siswa->id)
-            ->whereYear('tanggal', $currentYear)
-            ->whereMonth('tanggal', $currentMonth)
-            ->get();
-
-        // Calculate working days (excluding weekends) up to current date
-        $workingDays = 0;
-        for ($day = 1; $day <= $currentDay; $day++) {
-            $date = Carbon::create($currentYear, $currentMonth, $day);
-            // Exclude weekends (Saturday = 6, Sunday = 0)
-            if ($date->dayOfWeek != 0 && $date->dayOfWeek != 6) {
-                $workingDays++;
-            }
+        // Hitung hari kerja (Senin-Jumat) dari tanggal mulai sampai hari ini (denominator)
+        // Ini merefleksikan "Sudah berapa hari kerja berlalu sejak magang dimulai?"
+        // Sinkron dengan konsep "Progres Waktu" di dashboard
+        $workingDays = $startDate->diffInDaysFiltered(function (Carbon $date) {
+            return !$date->isWeekend();
+        }, $now);
+        
+        // Tambahkan 1 hari jika hari ini adalah weekday (karena diffInDaysFiltered biasanya exclude end date atau tergantung jam, safe way + check)
+        if (!$now->isWeekend()) {
+             $workingDays += 1;
         }
 
-        $presentDays = $attendances->where('status', 'Hadir')->count();
-        $sickDays = $attendances->where('status', 'Sakit')->count();
-        $permissionDays = $attendances->where('status', 'Izin')->count();
-        $absentDays = $attendances->where('status', 'Tidak Hadir')->count();
+        // Koreksi jika start date > now (future date)
+        if ($workingDays < 0) $workingDays = 0;
 
-        // Calculate percentage based on working days, not just recorded days
+        $presentDays = $stats['Hadir'] ?? 0;
+        $sickDays = $stats['Sakit'] ?? 0;
+        $permissionDays = $stats['Izin'] ?? 0;
+        $absentDays = $stats['Tidak Hadir'] ?? 0; // Sebenarnya absent days harusnya dihitung dari workingDays - present - sick - permission
+
+        // Hitung persentase: (Hadir / Hari Kerja Yang Sudah Berlalu)
+        // Jadi jika magang berjalan 10 hari, dan hadir 10 hari, maka 100%.
         $percentage = $workingDays > 0 ? round(($presentDays / $workingDays) * 100) : 0;
+        
+        // Cap percentage at 100% just in case of odd data
+        $percentage = min(100, $percentage);
 
         return [
             'percentage' => $percentage,
-            'working_days' => $workingDays,
+            'working_days' => $workingDays,  // Ini adalah "Seharusnya Hadir" (total hari kerja yang sudah lewat)
             'present_days' => $presentDays,
             'sick_days' => $sickDays,
             'permission_days' => $permissionDays,
-            'absent_days' => $absentDays,
+            'absent_days' => $workingDays - ($presentDays + $sickDays + $permissionDays), // Sisa hari yang bolos (alfa)
         ];
     }
 }

@@ -49,6 +49,7 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
             ],
             'active_role' => fn () => $request->session()->get('active_role', $request->user()?->role),
+            'active_name' => fn () => $request->session()->get('active_name', $request->user()?->name),
         ]);
     }
 }

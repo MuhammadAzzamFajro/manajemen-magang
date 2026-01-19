@@ -20,15 +20,17 @@ class DashboardController extends Controller
     public function index()
     {
         try {
-            // Statistik dengan fallback 0
-            $stats = [
-                'totalSiswa' => Siswa::count(),
-                'totalDudi' => Dudi::count(),
-                'totalMagang' => Magang::where('status', 'Aktif')->count(),
-                'totalLogbook' => Logbook::count(),
-                'pendingLogbook' => Logbook::where('status', 'Menunggu')->count(),
-                'pendingMagang' => Magang::where('status', 'Pending')->count(),
-            ];
+            // Statistik dengan Cache 60 detik untuk performa
+            $stats = \Illuminate\Support\Facades\Cache::remember('dashboard_stats', 60, function () {
+                return [
+                    'totalSiswa' => Siswa::count(),
+                    'totalDudi' => Dudi::count(),
+                    'totalMagang' => Magang::where('status', 'Aktif')->count(),
+                    'totalLogbook' => Logbook::count(),
+                    'pendingLogbook' => Logbook::where('status', 'Menunggu')->count(),
+                    'pendingMagang' => Magang::where('status', 'Pending')->count(),
+                ];
+            });
 
             $magangs = Magang::with(['siswa:id,nama,user_id', 'dudi:id,nama'])
                 ->select('id', 'siswa_id', 'dudi_id', 'judul_magang', 'status', 'created_at')
@@ -274,21 +276,34 @@ class DashboardController extends Controller
         // Cek apakah siswa sudah memiliki penempatan magang aktif
         $hasMagang = $siswa ? Magang::where('siswa_id', $siswa->id)->where('status', 'Aktif')->exists() : false;
 
-        // Hitung persentase kehadiran berdasarkan data aktual
-        $presentRate = null;
-        if ($hasMagang && $siswa) {
-            $currentMonth = now()->month;
-            $currentYear = now()->year;
-
-            $attendances = Attendance::where('siswa_id', $siswa->id)
-                ->whereYear('tanggal', $currentYear)
-                ->whereMonth('tanggal', $currentMonth)
-                ->get();
-
-            $totalDays = $attendances->count();
-            $presentDays = $attendances->where('status', 'Hadir')->count();
-
-            $presentRate = $totalDays > 0 ? round(($presentDays / $totalDays) * 100) : 0;
+        // Hitung persentase kehadiran sinkron dengan halaman Kehadiran
+        // Berdasarkan: Hadir / Total Hari Kerja yang sudah berlalu (dari tanggal mulai magang)
+        $presentRate = 0;
+        if ($siswa) {
+            $magang = Magang::where('siswa_id', $siswa->id)->first();
+            
+            if ($magang && $magang->tanggal_mulai) {
+                $startDate = \Carbon\Carbon::parse($magang->tanggal_mulai);
+                $now = \Carbon\Carbon::now();
+                
+                // Hitung hari kerja (exclude weekend) yang sudah berlalu
+                $workingDays = $startDate->diffInDaysFiltered(function (\Carbon\Carbon $date) {
+                    return !$date->isWeekend();
+                }, $now);
+                
+                // Tambahkan 1 jika hari ini adalah weekday
+                if (!$now->isWeekend()) {
+                    $workingDays += 1;
+                }
+                
+                // Hitung kehadiran 'Hadir' sejak tanggal mulai magang
+                $presentDays = Attendance::where('siswa_id', $siswa->id)
+                    ->where('status', 'Hadir')
+                    ->where('tanggal', '>=', $startDate->format('Y-m-d'))
+                    ->count();
+                
+                $presentRate = $workingDays > 0 ? min(100, round(($presentDays / $workingDays) * 100)) : 0;
+            }
         }
 
         // Get internship status from magangs_siswa table
@@ -301,23 +316,30 @@ class DashboardController extends Controller
                 $internshipStatus = 'Sedang Magang';
                 $internshipCompany = $magang->dudi->nama ?? null;
 
-                // Calculate internship progress (90 days total)
+                // Calculate internship progress (90 WORKING DAYS total)
+                // Sinkronisasi dengan perhitungan kehadiran - gunakan hari kerja, bukan hari kalender
                 if ($magang->tanggal_mulai) {
                     $startDate = \Carbon\Carbon::parse($magang->tanggal_mulai);
-                    $currentDate = \Carbon\Carbon::now();
+                    $now = \Carbon\Carbon::now();
+                    $totalWorkingDays = 90; // 6 bulan = ~90 hari kerja
 
-                    // Simple calculation: get absolute difference in days
-                    $daysPassed = abs($startDate->diffInDays($currentDate));
-                    $totalDays = 90; // 6 bulan = 90 hari kerja
+                    // Hitung hari kerja yang sudah berlalu (exclude weekend) - sama seperti kehadiran
+                    $workingDaysPassed = $startDate->diffInDaysFiltered(function (\Carbon\Carbon $date) {
+                        return !$date->isWeekend();
+                    }, $now);
+                    
+                    // Tambahkan 1 jika hari ini adalah weekday
+                    if (!$now->isWeekend()) {
+                        $workingDaysPassed += 1;
+                    }
 
                     // Cap at maximum and ensure minimum
-                    $daysPassed = max(0, min($daysPassed, $totalDays));
-                    $daysPassed = round($daysPassed); // Round to a whole number
-                    $percentage = round(($daysPassed / $totalDays) * 100);
+                    $workingDaysPassed = max(0, min($workingDaysPassed, $totalWorkingDays));
+                    $percentage = round(($workingDaysPassed / $totalWorkingDays) * 100);
 
                     $internshipProgress = [
-                        'days_passed' => $daysPassed,
-                        'total_days' => $totalDays,
+                        'days_passed' => $workingDaysPassed,
+                        'total_days' => $totalWorkingDays,
                         'percentage' => $percentage
                     ];
                 }
@@ -334,6 +356,7 @@ class DashboardController extends Controller
             'internshipStatus' => $internshipStatus,
             'internshipCompany' => $internshipCompany,
             'internshipProgress' => $internshipProgress,
+            'internshipStartDate' => isset($magang) && $magang ? $magang->tanggal_mulai : null,
             'hasMagang' => $hasMagang,
             'siswa' => $siswa
         ]);
@@ -438,8 +461,11 @@ class DashboardController extends Controller
     // Siswa Sub-pages
     public function siswaDudi()
     {
+        $siswa = $this->getLoggedInSiswa();
+        $hasMagang = $siswa ? Magang::where('siswa_id', $siswa->id)->where('status', 'Aktif')->exists() : false;
+        
         $dudis = Dudi::latest()->get();
-        return Inertia::render('Dashboard/Siswa/Dudi', compact('dudis'));
+        return Inertia::render('Dashboard/Siswa/Dudi', compact('dudis', 'hasMagang'));
     }
 
     public function siswaMagang()
