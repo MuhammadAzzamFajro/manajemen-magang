@@ -1,4 +1,3 @@
-# Force Rebuild: Ensure pgsql drivers are loaded
 [phases.setup]
 nixPkgs = ['php83', 'php83Extensions.pdo', 'php83Extensions.pdo_pgsql', 'php83Extensions.pgsql', 'php83Extensions.mbstring', 'php83Extensions.openssl', 'php83Extensions.tokenizer', 'php83Extensions.xml', 'php83Extensions.ctype', 'php83Extensions.curl', 'php83Packages.composer']
 
@@ -8,4 +7,4 @@ cmds = [
 ]
 
 [start]
-cmd = 'php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=$PORT'
+cmd = 'php -m | grep pdo_pgsql && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=$PORT'
