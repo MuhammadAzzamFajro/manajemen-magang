@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ['php83', 'php83Extensions.pdo', 'php83Extensions.pdo_pgsql', 'php83Extensions.pgsql', 'php83Packages.composer']
+nixPkgs = ['php83', 'php83Extensions.pdo', 'php83Extensions.pdo_pgsql', 'php83Extensions.pgsql', 'php83Extensions.mbstring', 'php83Extensions.openssl', 'php83Extensions.tokenizer', 'php83Extensions.xml', 'php83Extensions.ctype', 'php83Extensions.curl', 'php83Packages.composer']
 
 [phases.build]
 cmds = [
@@ -9,11 +9,11 @@ cmds = [
 
 [phases.deploy]
 cmds = [
-    'php artisan migrate --force',
     'php artisan config:cache',
     'php artisan route:cache',
     'php artisan view:cache'
 ]
 
 [start]
-cmd = 'php artisan serve --host=0.0.0.0 --port=$PORT'
+cmd = 'php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=$PORT'
+
