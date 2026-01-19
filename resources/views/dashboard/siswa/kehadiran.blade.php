@@ -179,34 +179,28 @@ document.getElementById('attendanceForm').addEventListener('submit', function(e)
     .then(data => {
         if (data.success) {
             showNotification(data.message, 'success');
+            
+            // Capture values BEFORE reset
+            const statusSelect = document.getElementById('status');
+            const selectedStatusText = statusSelect.options[statusSelect.selectedIndex].text;
+            const selectedStatusValue = statusSelect.value;
+            const notes = document.getElementById('catatan').value;
+
             this.reset();
-            updateAttendanceStats();
-            updateStatsCards();
+            
+            // Pass captured values
+            updateAttendanceStats(selectedStatusText, notes);
+            updateStatsCards(selectedStatusValue);
         } else {
             showNotification(data.message || 'Terjadi kesalahan', 'error');
         }
     })
-    .catch(error => {
-        clearTimeout(timeoutId);
-        console.error('Error:', error);
-        if (error.name === 'AbortError') {
-            showNotification('Timeout - Permintaan terlalu lama', 'error');
-        } else {
-            showNotification('Terjadi kesalahan saat menyimpan data', 'error');
-        }
-    })
-    .finally(() => {
-        // Re-enable button immediately
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-    });
-});
+    // ...
+    // ... code ...
+    // ...
 
 // Function to update statistics cards dynamically
-function updateStatsCards() {
-    const statusSelect = document.getElementById('status');
-    const selectedStatus = statusSelect.value;
-    
+function updateStatsCards(selectedStatus) {
     if (!selectedStatus) return;
 
     // Update the stats cards with animation
@@ -225,18 +219,14 @@ function updateStatsCards() {
 }
 
 // Function to update attendance stats without full page reload
-function updateAttendanceStats() {
+function updateAttendanceStats(selectedStatusText, notes) {
     // Add the new attendance to the history table
     const today = new Date();
     const formattedDate = today.toLocaleDateString('id-ID', {
-        day: '2-digit',
+        day: 'numeric',
         month: 'short',
         year: 'numeric'
     });
-
-    const statusSelect = document.getElementById('status');
-    const selectedStatus = statusSelect.options[statusSelect.selectedIndex].text;
-    const notes = document.getElementById('catatan').value;
 
     // Create new table row
     const tbody = document.querySelector('tbody');
@@ -247,8 +237,8 @@ function updateAttendanceStats() {
             <td class="px-4 py-4 text-white font-medium">${formattedDate}</td>
             <td class="px-4 py-4">
                 <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest
-                    ${getStatusClass(selectedStatus)}">
-                    ${selectedStatus}
+                    ${getStatusClass(selectedStatusText)}">
+                    ${selectedStatusText}
                 </span>
             </td>
             <td class="px-4 py-4 text-gray-400">${notes || '-'}</td>

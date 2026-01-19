@@ -14,9 +14,7 @@
                 <span class="font-bold text-white">"{{ $query }}"</span>
             </p>
         </div>
-        <a href="{{ url()->previous() }}" class="text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white">
-            &larr; Kembali
-        </a>
+
     </div>
 
     @if($logbooks->isEmpty() && $magangs->isEmpty() && $dudis->isEmpty())

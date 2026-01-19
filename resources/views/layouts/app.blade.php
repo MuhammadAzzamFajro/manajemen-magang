@@ -56,7 +56,7 @@
         .will-change-transform { will-change: transform; }
     </style>
 </head>
-<body class="font-sans antialiased bg-gray-900 text-white overflow-x-hidden" x-data="{ showSwitchModal: false, switchRoleLabel: '', sidebarOpen: false, showUserMenu: false }">
+<body class="font-sans antialiased bg-gray-900 text-white overflow-x-hidden" x-data="{ showSwitchModal: {{ $errors->has('switch_email') || $errors->has('email') ? 'true' : 'false' }}, switchRoleLabel: '{{ old('role', '') }}', sidebarOpen: false, showUserMenu: false }">
     <div class="flex min-h-screen bg-gray-900">
         <!-- Mobile Sidebar Overlay -->
         <div x-show="sidebarOpen"
@@ -69,9 +69,13 @@
              @click="sidebarOpen = false"
              class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" x-cloak></div>
 
-        @if(Request::is('dashboard/guru*'))
+        @php
+            $activeRole = session('active_role', Auth::user()?->role);
+        @endphp
+
+        @if(Request::is('dashboard/guru*') || ($activeRole === 'Guru' && Request::routeIs('search')))
             @include('partials.sidebar-guru')
-        @elseif(Request::is('dashboard/siswa*'))
+        @elseif(Request::is('dashboard/siswa*') || ($activeRole === 'Siswa' && Request::routeIs('search')))
             @include('partials.sidebar-siswa')
         @endif
 
@@ -92,7 +96,7 @@
     <!-- Global Switch Role Modal -->
     <div x-show="showSwitchModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" x-cloak>
         <div class="absolute inset-0 bg-black/90 backdrop-blur-xl" @click="showSwitchModal = false"></div>
-        <div class="relative bg-gray-800 border-2 border-gray-700 w-full max-w-md rounded-[3rem] shadow-2xl p-10">
+        <div class="relative bg-gray-800 border-2 border-gray-700 w-full max-w-md rounded-[3rem] shadow-2xl p-10" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100">
             <div class="text-center mb-8">
                 <div class="w-20 h-20 bg-cyan-600/20 text-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-500/30">
                     <i class="fas fa-user-shield text-3xl"></i>
@@ -101,9 +105,11 @@
                 <p class="text-gray-400 text-sm mt-1">Masukkan email untuk beralih ke mode <span class="font-bold text-white" x-text="switchRoleLabel"></span></p>
             </div>
 
-            <form action="{{ route('switch.role') }}" method="POST" class="space-y-6" @submit="$event.target.querySelector('input[name=role]').value = switchRoleLabel">
+            <form action="{{ route('switch.role') }}" method="POST" class="space-y-6">
                 @csrf
+                <!-- Use :value binding for reliable one-way data flow to hidden input -->
                 <input type="hidden" name="role" :value="switchRoleLabel">
+                
                 <div>
                     <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Email Kredensial</label>
                     <input type="email" name="email" class="w-full bg-gray-900 border border-gray-700 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-4 focus:ring-cyan-500/20 transition" placeholder="Masukkan email akun Anda" required>
