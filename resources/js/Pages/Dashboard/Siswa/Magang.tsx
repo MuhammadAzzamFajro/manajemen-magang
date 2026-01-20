@@ -75,7 +75,7 @@ export default function SiswaMagang({ magangs }: SiswaMagangProps) {
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid gap-4 sm:grid-cols-3">
+                                <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="flex items-center gap-2">
                                         <Calendar className="w-4 h-4 text-muted-foreground" />
                                         <div>
@@ -90,13 +90,6 @@ export default function SiswaMagang({ magangs }: SiswaMagangProps) {
                                         <div>
                                             <p className="text-xs text-muted-foreground">Durasi</p>
                                             <p className="text-sm font-medium">6 Bulan</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <User className="w-4 h-4 text-muted-foreground" />
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Pembimbing</p>
-                                            <p className="text-sm font-medium">{magang.guruPembimbing?.name || 'Dalam proses'}</p>
                                         </div>
                                     </div>
                                 </div>

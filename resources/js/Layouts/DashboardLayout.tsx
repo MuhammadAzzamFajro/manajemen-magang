@@ -9,6 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
+import FlashMessage from '@/components/FlashMessage';
+
 const SidebarLink = ({ href, active, icon: Icon, label }: { href: string, active: boolean, icon: any, label: string }) => (
     <Link
         href={href}
@@ -27,7 +29,7 @@ const SidebarLink = ({ href, active, icon: Icon, label }: { href: string, active
 );
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const { auth, active_role, flash, errors } = usePage().props as any;
+    const { auth, active_role, active_name, active_email, flash, errors } = usePage().props as any;
     const user = auth.user;
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [showSwitchModal, setShowSwitchModal] = useState(false);
@@ -44,8 +46,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         });
     };
     
+
     const isGuru = active_role === 'Guru';
-    const activeName = (auth.user as any)?.name;
 
     const navItems = isGuru ? [
         { href: "/dashboard/guru", icon: LayoutDashboard, label: "Dashboard" },
@@ -69,7 +71,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <Rocket className="w-5 h-5" />
                     </div>
                     <div>
-                        <span className="font-extrabold text-xl tracking-tight text-slate-900 leading-none block">Pramagang</span>
+                        <span className="font-extrabold text-xl tracking-tight text-slate-900 leading-none block">Magang</span>
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 block">Management v2</span>
                     </div>
                 </Link>
@@ -135,13 +137,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <div className="relative">
                         <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
                             <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold">
-                                {activeName?.substring(0, 1).toUpperCase()}
+                                {active_name?.substring(0, 1).toUpperCase()}
                             </AvatarFallback>
                         </Avatar>
                         <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full shadow-sm" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-extrabold text-slate-900 truncate leading-tight uppercase tracking-tight">{activeName || user.name}</p>
+                        <p className="text-[13px] font-extrabold text-slate-900 truncate leading-tight uppercase tracking-tight">{active_name || user.name}</p>
                         <p className="text-[11px] text-slate-500 font-bold mt-0.5 tracking-wide flex items-center gap-1">
                             <ShieldCheck className="w-2.5 h-2.5 text-primary" />
                             {active_role}
@@ -168,6 +170,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </aside>
 
                 <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+                    <FlashMessage />
                     {/* Header */}
                     <header className="h-20 flex items-center justify-between px-8 bg-white/80 backdrop-blur-xl border-b border-slate-100 z-10 sticky top-0">
                         <div className="flex items-center gap-6">
@@ -190,17 +193,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 />
                             </div>
 
-                            <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl relative border-slate-100 bg-white text-slate-400 hover:text-primary hover:border-primary/10 transition-all group overflow-hidden">
-                                <Bell className="w-4.5 h-4.5 group-hover:scale-110 transition-transform" />
-                                <span className="absolute top-3 right-3 w-2 h-2 bg-primary rounded-full ring-2 ring-white animate-pulse" />
-                            </Button>
-
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="h-10 w-10 rounded-xl relative group p-0 overflow-hidden border border-slate-100 shadow-sm">
                                         <Avatar className="h-full w-full rounded-none">
                                             <AvatarFallback className="bg-primary/5 text-primary font-bold text-[13px]">
-                                                 {activeName?.substring(0, 1).toUpperCase()}
+                                                 {active_name?.substring(0, 1).toUpperCase()}
                                             </AvatarFallback>
                                         </Avatar>
                                     </Button>
@@ -208,8 +206,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 <DropdownMenuContent className="w-64 mt-2 rounded-2xl border-slate-100 shadow-2xl p-2" align="end">
                                     <DropdownMenuLabel className="font-normal px-4 py-3">
                                         <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-extrabold text-slate-900 tracking-tight leading-none uppercase">{activeName || user.name}</p>
-                                            <p className="text-[11px] font-bold leading-none text-slate-400 mt-1 uppercase tracking-wider">{user.email}</p>
+                                            <p className="text-sm font-extrabold text-slate-900 tracking-tight leading-none uppercase">{active_name || user.name}</p>
+                                            <p className="text-[11px] font-bold leading-none text-slate-400 mt-1 uppercase tracking-wider">{active_email || user.email}</p>
                                         </div>
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator className="mx-2 bg-slate-50" />

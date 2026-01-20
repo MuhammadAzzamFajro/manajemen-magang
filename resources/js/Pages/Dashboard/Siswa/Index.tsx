@@ -61,15 +61,7 @@ export default function SiswaDashboard({
         <DashboardLayout>
             <Head title="Dashboard Siswa" />
             
-            {/* Header */}
-            <div className="flex flex-col gap-1 mb-6">
-                <h1 className="text-2xl font-semibold tracking-tight">
-                    Selamat Datang, {namaSiswa}
-                </h1>
-                <p className="text-muted-foreground text-sm">
-                    Pantau progres magang dan aktivitas jurnal harian Anda.
-                </p>
-            </div>
+            {/* Header Removed for cleaner UI */}
 
             {/* Alert - No Placement */}
             {!hasMagang && (

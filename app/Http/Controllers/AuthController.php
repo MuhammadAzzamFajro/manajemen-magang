@@ -55,9 +55,9 @@ class AuthController extends Controller
             $request->session()->put('active_name', $user->name);
 
             if ($user->role === 'Guru') {
-                return redirect()->intended('dashboard/guru');
+                return redirect()->intended('dashboard/guru')->with('success', 'Login berhasil! Selamat datang kembali, ' . $user->name);
             }
-            return redirect()->intended('dashboard/siswa');
+            return redirect()->intended('dashboard/siswa')->with('success', 'Login berhasil! Selamat datang kembali, ' . $user->name);
         }
 
         return back()->withErrors([
@@ -115,7 +115,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+        return redirect('/')->with('success', 'Anda telah keluar sistem.');
     }
 
     public function switchRole(Request $request)

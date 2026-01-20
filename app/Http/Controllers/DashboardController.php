@@ -32,14 +32,14 @@ class DashboardController extends Controller
                 ];
             });
 
-            $magangs = Magang::with(['siswa:id,nama,user_id', 'dudi:id,nama'])
+            $magangs = Magang::with(['siswa:id,nama,nis,user_id', 'dudi:id,nama'])
                 ->select('id', 'siswa_id', 'dudi_id', 'judul_magang', 'status', 'created_at')
                 ->latest()
                 ->limit(5)
                 ->get() ?? collect();
 
             $latestSiswas = Siswa::with(['kelas:id,nama'])
-                ->select('id', 'nama', 'kelas_id', 'created_at')
+                ->select('id', 'nama', 'nis', 'kelas_id', 'created_at')
                 ->latest()
                 ->limit(5)
                 ->get() ?? collect();
@@ -104,7 +104,8 @@ class DashboardController extends Controller
 
         if ($user?->role === 'Guru') {
             // Guru: bisa melihat semua data
-            $logbooks = Logbook::with(['siswa.kelas'])
+            $logbooks = Logbook::with(['siswa:id,nama,kelas_id', 'siswa.kelas:id,nama'])
+                ->select('id', 'siswa_id', 'kegiatan', 'deskripsi', 'tanggal', 'created_at')
                 ->where(function ($q) use ($query) {
                     $q->where('kegiatan', 'like', "%{$query}%")
                       ->orWhere('deskripsi', 'like', "%{$query}%");
@@ -113,7 +114,8 @@ class DashboardController extends Controller
                 ->limit(20)
                 ->get();
 
-            $magangs = Magang::with(['siswa.kelas', 'dudi'])
+            $magangs = Magang::with(['siswa:id,nama,kelas_id', 'siswa.kelas:id,nama', 'dudi:id,nama'])
+                ->select('id', 'siswa_id', 'dudi_id', 'judul_magang', 'status', 'deskripsi', 'created_at')
                 ->where(function ($q) use ($query) {
                     $q->where('judul_magang', 'like', "%{$query}%")
                       ->orWhereHas('siswa', function ($qs) use ($query) {
@@ -268,10 +270,18 @@ class DashboardController extends Controller
 
         $namaSiswa = $activeName ?? ($siswa?->nama ?? $user?->name ?? 'User');
 
-        $logbookCount = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->count();
-        $approvedLogbook = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->where('status', 'Setuju')->count();
-        $pendingLogbook = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->where('status', 'Menunggu')->count();
-        $rejectedLogbook = Logbook::where('siswa_id', ($siswa?->id) ?? 0)->where('status', 'Tolak')->count();
+        // Optimasi: Hitung statistik logbook dalam 1 query (mengurangi 4 query terpisah menjadi 1)
+        $logbookStats = Logbook::where('siswa_id', ($siswa?->id) ?? 0)
+            ->selectRaw('count(*) as total')
+            ->selectRaw("count(case when status = 'Setuju' then 1 end) as approved")
+            ->selectRaw("count(case when status = 'Menunggu' then 1 end) as pending")
+            ->selectRaw("count(case when status = 'Tolak' then 1 end) as rejected")
+            ->first();
+
+        $logbookCount = $logbookStats->total;
+        $approvedLogbook = $logbookStats->approved;
+        $pendingLogbook = $logbookStats->pending;
+        $rejectedLogbook = $logbookStats->rejected;
 
         // Cek apakah siswa sudah memiliki penempatan magang aktif
         $hasMagang = $siswa ? Magang::where('siswa_id', $siswa->id)->where('status', 'Aktif')->exists() : false;

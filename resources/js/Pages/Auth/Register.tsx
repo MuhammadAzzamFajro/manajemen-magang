@@ -22,7 +22,7 @@ export default function Register() {
 
     return (
         <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 font-outfit relative overflow-hidden">
-            <Head title="Daftar Akun - Pramagang" />
+            <Head title="Daftar Akun - Magang" />
             
             {/* Background Decorative Elements */}
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />

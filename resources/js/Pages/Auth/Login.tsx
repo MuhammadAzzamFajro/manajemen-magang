@@ -19,7 +19,7 @@ export default function Login() {
 
     return (
         <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 font-outfit relative overflow-hidden">
-            <Head title="Login - Pramagang" />
+            <Head title="Login - Magang" />
             
             {/* Background Decorative Elements */}
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
@@ -31,7 +31,7 @@ export default function Login() {
                         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/30">
                             <Rocket className="h-4 w-4" />
                         </div>
-                        <span className="font-bold text-slate-800 tracking-tight text-lg">Pramagang</span>
+                        <span className="font-bold text-slate-800 tracking-tight text-lg">Magang</span>
                     </div>
                 </div>
 
@@ -39,7 +39,7 @@ export default function Login() {
                     <CardContent className="p-8 md:p-12">
                         <div className="text-center mb-10">
                             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-3">Selamat Datang</h1>
-                            <p className="text-slate-500 text-sm font-medium leading-relaxed">Silahkan masuk ke akun Anda untuk melanjutkan akses ke dashboard Pramagang.</p>
+                            <p className="text-slate-500 text-sm font-medium leading-relaxed">Silahkan masuk ke akun Anda untuk melanjutkan akses ke dashboard Magang.</p>
                         </div>
 
                         {Object.keys(errors).length > 0 && (
@@ -70,7 +70,6 @@ export default function Login() {
                             <div className="space-y-2.5">
                                 <div className="flex justify-between items-center px-1">
                                     <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Kata Sandi</Label>
-                                    <Link href="#" className="text-[11px] font-bold text-primary hover:underline uppercase tracking-tight">Lupa Sandi?</Link>
                                 </div>
                                 <div className="relative group transition-all">
                                     <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors duration-300 pointer-events-none">
@@ -116,7 +115,7 @@ export default function Login() {
                 </Card>
 
                 <p className="mt-8 text-center text-slate-400 text-xs font-medium">
-                    &copy; {new Date().getFullYear()} Pramagang Management System. All rights reserved.
+                    &copy; {new Date().getFullYear()} Sistem Manajemen Magang. All rights reserved.
                 </p>
             </div>
         </div>

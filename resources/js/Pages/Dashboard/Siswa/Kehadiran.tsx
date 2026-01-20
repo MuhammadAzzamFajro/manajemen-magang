@@ -72,27 +72,31 @@ export default function SiswaKehadiran({ attendanceStats, recentAttendances }: S
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <Card>
                     <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">Persentase</p>
+                        <p className="text-sm text-muted-foreground">Persentase Kehadiran</p>
                         <p className="text-2xl font-bold">{attendanceStats.percentage}%</p>
                         <Progress value={attendanceStats.percentage} className="mt-2 h-1" />
+                        <p className="text-xs text-muted-foreground mt-1">dari {attendanceStats.working_days} hari kerja</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">Hadir</p>
                         <p className="text-2xl font-bold text-green-600">{attendanceStats.present_days}</p>
+                        <p className="text-xs text-muted-foreground mt-1">hari kerja</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">Izin/Sakit</p>
+                        <p className="text-sm text-muted-foreground">Izin / Sakit</p>
                         <p className="text-2xl font-bold text-yellow-600">{attendanceStats.permission_days}</p>
+                        <p className="text-xs text-muted-foreground mt-1">hari</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">Alfa</p>
+                        <p className="text-sm text-muted-foreground">Alfa (Tanpa Keterangan)</p>
                         <p className="text-2xl font-bold text-red-600">{attendanceStats.absent_days}</p>
+                        <p className="text-xs text-muted-foreground mt-1">hari</p>
                     </CardContent>
                 </Card>
             </div>

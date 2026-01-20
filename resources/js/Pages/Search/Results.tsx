@@ -54,23 +54,27 @@ export default function SearchResults({ query, logbooks = [], magangs = [], dudi
         <DashboardLayout>
             <Head title={`Hasil Pencarian: ${query}`} />
             
-            <div className="mb-12">
-                <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] mb-3">Sistem Pencarian Global</h4>
-                <h1 className="text-4xl md:text-5xl font-black text-slate-900 uppercase tracking-tighter leading-none mb-3">
-                    Hasil <span className="text-blue-600">Pencarian</span>
-                </h1>
-                <p className="text-slate-500 font-medium text-lg italic">
-                    Menampilkan hasil untuk kata kunci: <span className="font-black text-slate-900 uppercase">"{query}"</span>
-                </p>
+            <div className="mb-8">
+                <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-2">Pencarian Global</h4>
+                <div className="flex items-baseline gap-2">
+                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+                        Hasil Pencarian
+                    </h1>
+                    <span className="text-slate-400 text-lg">for</span>
+                    <span className="text-xl md:text-2xl font-bold text-primary italic">"{query}"</span>
+                </div>
             </div>
 
             {isEmpty ? (
-                <div className="bg-white border-4 border-dashed border-slate-100 rounded-[5rem] p-32 text-center shadow-2xl shadow-slate-100/50 flex flex-col items-center">
-                    <div className="mb-10 w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center text-slate-200 shadow-inner border border-slate-100">
-                        <SearchIcon className="h-10 w-10 opacity-50" />
+                <div className="bg-white border border-dashed border-slate-200 rounded-3xl p-16 text-center shadow-sm flex flex-col items-center max-w-2xl mx-auto">
+                    <div className="mb-6 w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300">
+                        <SearchIcon className="h-8 w-8" />
                     </div>
-                    <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tighter mb-4 leading-none">Pencarian Nihil</h2>
-                    <p className="text-slate-400 max-w-sm mx-auto leading-relaxed font-medium text-lg italic truncate">"Tidak ada hasil yang cocok dengan parameter '{query}' yang Anda masukkan."</p>
+                    <h2 className="text-xl font-bold text-slate-900 mb-2">Tidak Ditemukan</h2>
+                    <p className="text-slate-500">
+                        Kami tidak menemukan hasil untuk kata kunci <span className="font-semibold text-slate-700">"{query}"</span>. 
+                        Coba gunakan kata kunci lain atau periksa ejaan Anda.
+                    </p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -83,32 +87,33 @@ export default function SearchResults({ query, logbooks = [], magangs = [], dudi
                         </div>
                         <div className="space-y-6">
                             {logbooks.length > 0 ? logbooks.map((log) => (
-                                <Card key={log.id} className="bg-white border-transparent p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500 group font-outfit">
-                                    <div className="flex items-start justify-between gap-4 mb-4 pb-4 border-b border-slate-50">
+
+                                <Card key={log.id} className="bg-white border-slate-100 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 group">
+                                    <div className="flex items-start justify-between gap-4 mb-3 pb-3 border-b border-slate-50">
                                         <div className="min-w-0">
-                                            <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-1.5 ml-1 flex items-center gap-2">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 block"></span> Entry Ref #{log.id}
+                                            <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-1">
+                                                Logbook #{log.id}
                                             </p>
-                                            <h3 className="text-lg font-black text-slate-900 leading-[1.2] truncate group-hover:text-amber-600 transition uppercase tracking-tight">{log.kegiatan}</h3>
+                                            <h3 className="text-base font-bold text-slate-900 leading-tight truncate">{log.kegiatan}</h3>
                                         </div>
                                     </div>
-                                    <div className="mb-4">
+                                    <div className="mb-3 space-y-2">
                                         {log.siswa && (
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <div className="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center text-[10px] text-slate-500 font-black">{log.siswa.nama.charAt(0)}</div>
-                                                <span className="text-xs font-bold text-slate-900 uppercase truncate">
-                                                    {log.siswa.nama} <span className="text-slate-300 mx-1">•</span> <span className="text-slate-400">{log.siswa.kelas?.nama || log.siswa.kelas?.kelas || 'N/A'}</span>
-                                                </span>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[9px] text-slate-600 font-bold">{log.siswa.nama.charAt(0)}</div>
+                                                <p className="text-xs font-semibold text-slate-700 truncate">
+                                                    {log.siswa.nama} <span className="text-slate-300">•</span> {log.siswa.kelas?.nama || 'N/A'}
+                                                </p>
                                             </div>
                                         )}
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                                             <Calendar className="h-3 w-3" />
-                                            {log.tanggal ? format(new Date(log.tanggal), 'dd MMMM yyyy') : '-'}
+                                            {log.tanggal ? format(new Date(log.tanggal), 'dd MMM yyyyy') : '-'}
                                         </p>
                                     </div>
                                     {log.deskripsi && (
-                                        <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 italic">
-                                            <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">"{log.deskripsi}"</p>
+                                        <div className="bg-slate-50 p-3 rounded-xl">
+                                            <p className="text-xs text-slate-600 line-clamp-2">"{log.deskripsi}"</p>
                                         </div>
                                     )}
                                 </Card>
@@ -130,37 +135,38 @@ export default function SearchResults({ query, logbooks = [], magangs = [], dudi
                         </div>
                         <div className="space-y-6">
                             {magangs.length > 0 ? magangs.map((mg) => (
-                                <Card key={mg.id} className="bg-white border-transparent p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-blue-600/10 transition-all duration-500 group font-outfit">
-                                    <div className="flex items-start justify-between gap-4 mb-6">
+
+                                <Card key={mg.id} className="bg-white border-slate-100 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 group">
+                                    <div className="flex items-start justify-between gap-4 mb-4">
                                         <div className="min-w-0">
-                                            <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-1.5 ml-1 flex items-center gap-2">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 block"></span> Intern Pos #{mg.id}
+                                            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-1">
+                                                Magang #{mg.id}
                                             </p>
-                                            <h3 className="text-lg font-black text-slate-900 leading-[1.2] truncate group-hover:text-blue-600 transition uppercase tracking-tight">{mg.judul_magang}</h3>
+                                            <h3 className="text-base font-bold text-slate-900 leading-tight truncate">{mg.judul_magang}</h3>
                                         </div>
-                                        <Badge className="shrink-0 bg-emerald-50 text-emerald-600 border-transparent text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">
+                                        <Badge variant={mg.status === 'Aktif' ? 'default' : 'secondary'} className="text-[10px] px-2 py-0.5">
                                             {mg.status}
                                         </Badge>
                                     </div>
-                                    <div className="space-y-3 mb-6">
+                                    <div className="space-y-3 mb-4">
                                         {mg.siswa && (
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 bg-slate-900 rounded-xl flex items-center justify-center text-white text-[10px] font-black">{mg.siswa.nama.charAt(0)}</div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[9px] text-slate-600 font-bold">{mg.siswa.nama.charAt(0)}</div>
                                                 <div className="min-w-0">
-                                                    <p className="text-xs font-black text-slate-900 uppercase truncate leading-none mb-1">{mg.siswa.nama}</p>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{mg.siswa.kelas?.nama || mg.siswa.kelas?.kelas || 'N/A'}</p>
+                                                    <p className="text-xs font-bold text-slate-700 truncate">{mg.siswa.nama}</p>
+                                                    <p className="text-[10px] text-slate-400 truncate">{mg.siswa.kelas?.nama || 'N/A'}</p>
                                                 </div>
                                             </div>
                                         )}
                                         {mg.dudi && (
-                                            <p className="text-xs font-bold text-blue-600 uppercase tracking-tighter flex items-center gap-2">
-                                                <Building className="h-3.5 w-3.5" /> {mg.dudi.nama}
+                                            <p className="text-xs font-semibold text-blue-600 flex items-center gap-1.5">
+                                                <Building className="h-3 w-3" /> {mg.dudi.nama}
                                             </p>
                                         )}
                                     </div>
                                     {mg.deskripsi && (
-                                        <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-                                            <p className="text-xs text-slate-500 line-clamp-2 italic leading-relaxed">"{mg.deskripsi}"</p>
+                                        <div className="bg-slate-50 p-3 rounded-xl">
+                                            <p className="text-xs text-slate-600 line-clamp-2">"{mg.deskripsi}"</p>
                                         </div>
                                     )}
                                 </Card>
@@ -182,23 +188,22 @@ export default function SearchResults({ query, logbooks = [], magangs = [], dudi
                         </div>
                         <div className="space-y-6">
                             {dudis.length > 0 ? dudis.map((dudi) => (
-                                <Card key={dudi.id} className="bg-white border-transparent p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 group font-outfit overflow-hidden relative">
-                                    <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-50 rounded-full translate-x-12 -translate-y-12 opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
-                                    
-                                    <div className="relative z-10">
-                                        <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1.5 ml-1">Enterprise Partner</p>
-                                        <p className="text-xl font-black text-slate-900 mb-2 truncate group-hover:text-emerald-700 transition uppercase tracking-tighter leading-none">{dudi.nama}</p>
+
+                                <Card key={dudi.id} className="bg-white border-slate-100 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden">
+                                     <div className="relative z-10">
+                                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1">Mitra DUDI</p>
+                                        <h3 className="text-lg font-bold text-slate-900 mb-2 truncate">{dudi.nama}</h3>
                                         
                                         {dudi.bidang_usaha && (
-                                            <Badge className="bg-emerald-50 text-emerald-600 border-transparent text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-6">
+                                            <Badge variant="outline" className="text-[10px] mb-4 bg-emerald-50 text-emerald-700 border-emerald-200">
                                                 {dudi.bidang_usaha}
                                             </Badge>
                                         )}
                                         
                                         {dudi.alamat && (
-                                            <div className="flex items-start gap-2 bg-slate-50/80 p-4 rounded-2xl border border-slate-100">
-                                                <MapPin className="h-4 w-4 text-slate-300 mt-0.5" />
-                                                <p className="text-xs text-slate-500 leading-relaxed font-medium line-clamp-2">{dudi.alamat}</p>
+                                            <div className="flex items-start gap-2 text-slate-500">
+                                                <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                                                <p className="text-xs line-clamp-2">{dudi.alamat}</p>
                                             </div>
                                         )}
                                     </div>

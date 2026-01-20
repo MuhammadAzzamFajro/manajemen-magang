@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Pramagang</title>
+    <title>Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -28,7 +28,7 @@
                 <div class="w-16 h-16 bg-cyan-500 rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-4 shadow-lg shadow-cyan-500/30">
                     <i class="fas fa-rocket"></i>
                 </div>
-                <h1 class="text-2xl font-black text-white uppercase tracking-tighter">Pramagang SMKN 1</h1>
+                <h1 class="text-2xl font-black text-white uppercase tracking-tighter">Magang SMKN 1</h1>
                 <p class="text-gray-400 text-sm">Silakan masuk ke akun Anda</p>
             </div>
 

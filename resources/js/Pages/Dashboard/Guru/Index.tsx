@@ -26,16 +26,6 @@ export default function GuruDashboard({ stats, magangs, latestSiswas, pendingMag
     return (
         <DashboardLayout>
             <Head title="Dashboard Guru" />
-            
-            {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-2xl font-semibold tracking-tight">
-                    Selamat Datang Kembali!
-                </h1>
-                <p className="text-muted-foreground text-sm">
-                    Monitoring aktivitas magang dan verifikasi laporan harian siswa.
-                </p>
-            </div>
 
             {/* Stats Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
