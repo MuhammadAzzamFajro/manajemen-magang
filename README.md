@@ -1,61 +1,72 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SIMMAS — Sistem Informasi Manajemen Magang Siswa
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+SIMMAS adalah aplikasi web Sistem Informasi Manajemen Magang Siswa/PKL untuk SMK dengan arsitektur terpisah:
+- **Backend**: Laravel 12 REST API murni (Sanctum token-based authentication, Supabase / PostgreSQL)
+- **Frontend**: Next.js 14+ (App Router, TypeScript, Tailwind CSS, TanStack React Query)
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## ⚡ Konfigurasi Database Supabase (PostgreSQL)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Edit file `backend/.env` sesuai dengan kredensial proyek Supabase Anda:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Opsi 1: Connection String URI (`DATABASE_URL`)
+```env
+DB_CONNECTION=pgsql
+DATABASE_URL=postgresql://postgres.YOUR_PROJECT_REF:YOUR_PASSWORD@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require
+```
 
-## Learning Laravel
+### Opsi 2: Standard Connection Parameters
+```env
+DB_CONNECTION=pgsql
+DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com # atau db.YOUR_PROJECT_REF.supabase.co
+DB_PORT=6543 # atau 5432
+DB_DATABASE=postgres
+DB_USERNAME=postgres.YOUR_PROJECT_REF
+DB_PASSWORD=YOUR_SUPABASE_PASSWORD
+DB_SSLMODE=require
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 🚀 Panduan Memulai (Quick Start)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 1. Persiapan Backend (Laravel API)
 
-## Laravel Sponsors
+```bash
+cd backend
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# 1. Install dependensi Composer
+composer install
 
-### Premium Partners
+# 2. Migrate database & seeder demo ke Supabase
+php artisan migrate:fresh --seed
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+# 3. Buat symbolic link storage untuk foto presensi & jurnal
+php artisan storage:link
 
-## Contributing
+# 4. Jalankan server Laravel API (berjalan di http://localhost:8000)
+php artisan serve
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 🔑 Akun Demo (Seeder Defaults)
 
-## Code of Conduct
+- **Admin Sekolah**: `admin@simmas.sch.id` | Pass: `password`
+- **Guru Pembimbing**: `guru@simmas.sch.id` | Pass: `password`
+- **Siswa Magang**: `siswa@simmas.sch.id` | Pass: `password`
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+### 2. Persiapan Frontend (Next.js)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+cd frontend
 
-## License
+# 1. Install dependensi NPM
+npm install --legacy-peer-deps
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# 2. Jalankan server Next.js (berjalan di http://localhost:3000)
+npm run dev
+```
+
+Buka browser di `http://localhost:3000` untuk mengakses aplikasi SIMMAS.
