@@ -8,9 +8,21 @@ use App\Models\PenempatanMagang;
 use App\Models\JurnalHarian;
 use App\Models\Absensi;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
 class DashboardController extends Controller
 {
+    #[OA\Get(
+        path: '/api/guru/dashboard',
+        summary: 'Statistik dashboard guru',
+        description: 'Ringkasan nilai/absensi/jurnal untuk siswa bimbingan guru yang sedang login.',
+        tags: ['Guru'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Statistik dashboard guru.'),
+            new OA\Response(response: 404, description: 'Profil guru tidak ditemukan.'),
+        ],
+    )]
     public function index(Request $request)
     {
         $guru = $request->user()->guru;
@@ -39,7 +51,7 @@ class DashboardController extends Controller
                 'absensi_menunggu'        => Absensi::whereIn('siswa_id', $siswaBimbinganIds)->where('status_validasi_guru', 'menunggu')->count(),
                 'jurnal_perlu_evaluasi_list' => $jurnalBelumEvaluasi,
                 'absensi_hari_ini'        => $absensiHariIni,
-                'siswa_bimbingan'         => PenempatanMagang::where('guru_id', $guru->id)->with(['siswa', 'tempatMagang'])->get(),
+                'siswa_bimbingan'         => PenempatanMagang::where('guru_id', $guru->id)->with(['siswa.kelas', 'tempatMagang'])->get(),
             ]
         ]);
     }

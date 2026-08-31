@@ -53,7 +53,7 @@ export const getGurus = async (search = '') => {
 export const createGuru = async (payload: {
   nip: string;
   nama_lengkap: string;
-  jurusan?: string;
+  jurusan_id?: number | null;
   email: string;
   password: string;
   status_akun?: string;
@@ -112,11 +112,24 @@ export const plottingSiswa = async (id: number, payload: {
   return api.post(`/admin/siswa/${id}/plotting`, payload);
 };
 
+export const prosesPengajuanSiswa = async (pengajuanId: number, payload: {
+  status: 'disetujui' | 'ditolak';
+  guru_id?: number | null;
+  catatan_penolakan?: string;
+}) => {
+  return api.post(`/admin/siswa/pengajuan/${pengajuanId}/proses`, payload);
+};
+
 // ─── ADMIN: DUDI (TEMPAT MAGANG) ─────────────────────────────────────────────
 
 export const getDudis = async (search = '') => {
   const qs = search ? `?search=${encodeURIComponent(search)}` : '';
   return api.get<any[]>(`/admin/dudi${qs}`);
+};
+
+// Daftar DUDI terverifikasi & masih berkuota — dapat diakses semua role (admin/guru/siswa)
+export const getDudisOptions = async () => {
+  return api.get<any[]>('/dudi');
 };
 
 export const createDudi = async (payload: any) => {
@@ -336,5 +349,39 @@ export const updateKunjungan = async (id: number, payload: {
 
 export const deleteKunjungan = async (id: number) => {
   return api.delete(`/guru/kunjungan/${id}`);
+};
+
+// ─── ADMIN: JURUSAN & KELAS ─────────────────────────────────────────────────
+// Get bisa diakses semua role (untuk dropdown form)
+export const getJurusans = async () => {
+  return api.get<any[]>('/jurusan');
+};
+
+export const getKelases = async () => {
+  return api.get<any[]>('/kelas');
+};
+
+export const createJurusan = async (payload: { nama: string }) => {
+  return api.post('/admin/jurusan', payload);
+};
+
+export const updateJurusan = async (id: number, payload: { nama: string }) => {
+  return api.put(`/admin/jurusan/${id}`, payload);
+};
+
+export const deleteJurusan = async (id: number) => {
+  return api.delete(`/admin/jurusan/${id}`);
+};
+
+export const createKelas = async (payload: { nama: string; jurusan_id?: number | null }) => {
+  return api.post('/admin/kelas', payload);
+};
+
+export const updateKelas = async (id: number, payload: { nama: string; jurusan_id?: number | null }) => {
+  return api.put(`/admin/kelas/${id}`, payload);
+};
+
+export const deleteKelas = async (id: number) => {
+  return api.delete(`/admin/kelas/${id}`);
 };
 

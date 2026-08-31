@@ -14,6 +14,8 @@ import {
   ShieldCheck,
   LogOut,
   GraduationCap,
+  Layers,
+  BookOpen,
   X,
 } from 'lucide-react';
 import { signOut, getAuthUser } from '@/lib/auth';
@@ -50,6 +52,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ onCloseMobileMenu })
         { href: '/admin/guru', label: 'Data Guru', icon: UserCheck },
         { href: '/admin/siswa', label: 'Data Siswa', icon: Users },
         { href: '/admin/dudi', label: 'Data DUDI', icon: Building2 },
+        { href: '/admin/jurusan', label: 'Data Jurusan', icon: Layers },
+        { href: '/admin/kelas', label: 'Data Kelas', icon: BookOpen },
       ],
     },
     {

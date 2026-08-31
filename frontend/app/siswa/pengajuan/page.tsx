@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getPengajuanSiswa, submitPengajuan, getDudis } from '@/lib/db';
+import { getPengajuanSiswa, submitPengajuan, getDudisOptions, getSiswaDashboard } from '@/lib/db';
 import { getAuthUser } from '@/lib/auth';
+import { toast } from '@/lib/toast';
 import {
   Plus,
   Send,
@@ -103,9 +104,19 @@ export default function SiswaPengajuanPage() {
 
   const { data: dudis = [] } = useQuery({
     queryKey: ['siswa-dudi-list'],
-    queryFn: () => getDudis(),
+    queryFn: () => getDudisOptions(),
     enabled: isMounted,
   });
+
+  const { data: dashboard } = useQuery({
+    queryKey: ['siswa-dashboard'],
+    queryFn: () => getSiswaDashboard(),
+    enabled: isMounted && !!siswaId,
+  });
+
+  const statusMagang = dashboard?.status_magang;
+  const alreadyMagang =
+    statusMagang === 'sedang_magang' || statusMagang === 'lulus';
 
   const submitMutation = useMutation({
     mutationFn: () =>
@@ -121,9 +132,12 @@ export default function SiswaPengajuanPage() {
       queryClient.invalidateQueries({ queryKey: ['siswa-dashboard'] });
       setIsModalOpen(false);
       resetForm();
+      toast.success('Pengajuan magang berhasil dikirim.');
     },
     onError: (err: any) => {
-      setErrorMsg(err?.response?.data?.message || err.message || 'Gagal mengirim pengajuan.');
+      const m = err?.response?.data?.message || err.message || 'Gagal mengirim pengajuan.';
+      setErrorMsg(m);
+      toast.error(m);
     },
   });
 
@@ -176,7 +190,7 @@ export default function SiswaPengajuanPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Pengajuan Magang</h1>
         </div>
-        {status === 'belum_mengajukan' || status === 'ditolak' ? (
+        {!alreadyMagang && (status === 'belum_mengajukan' || status === 'ditolak') ? (
           <button
             onClick={openModal}
             className="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-xs shrink-0"
@@ -397,12 +411,14 @@ export default function SiswaPengajuanPage() {
                   Permohonan tempat magang Anda ditolak. Silakan ajukan ulang ke perusahaan mitra lainnya.
                 </p>
               </div>
-              <button
-                onClick={openModal}
-                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
-              >
-                + Ajukan Ulang Tempat Magang
-              </button>
+              {!alreadyMagang && (
+                <button
+                  onClick={openModal}
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+                >
+                  + Ajukan Ulang Tempat Magang
+                </button>
+              )}
             </div>
           )}
 
@@ -414,15 +430,19 @@ export default function SiswaPengajuanPage() {
               <div className="space-y-1 max-w-sm">
                 <h3 className="text-lg font-bold text-gray-900">Form Pengajuan Tempat Magang</h3>
                 <p className="text-xs text-gray-500 leading-relaxed">
-                  Pilih industri mitra yang membuka kuota penerimaan permohonan magang mandiri.
+                  {alreadyMagang
+                    ? 'Anda sudah terdaftar / pernah magang, sehingga tidak dapat mengajukan magang lagi.'
+                    : 'Pilih industri mitra yang membuka kuota penerimaan permohonan magang mandiri.'}
                 </p>
               </div>
-              <button
-                onClick={openModal}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
-              >
-                + Form Pengajuan Tempat Magang
-              </button>
+              {!alreadyMagang && (
+                <button
+                  onClick={openModal}
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+                >
+                  + Form Pengajuan Tempat Magang
+                </button>
+              )}
             </div>
           )}
         </div>

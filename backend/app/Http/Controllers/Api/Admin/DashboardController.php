@@ -8,9 +8,32 @@ use App\Models\Guru;
 use App\Models\TempatMagang;
 use App\Models\PengajuanMagang;
 use App\Models\PenempatanMagang;
+use OpenApi\Attributes as OA;
 
 class DashboardController extends Controller
 {
+    #[OA\Get(
+        path: '/api/admin/dashboard',
+        summary: 'Statistik dashboard admin',
+        description: 'Ringkasan jumlah siswa, guru aktif, mitra DUDI, pengajuan menunggu, distribusi DUDI, dan chart status magang.',
+        tags: ['Admin'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Statistik dashboard.', content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'status', type: 'boolean', example: true),
+                    new OA\Property(property: 'data', properties: [
+                        new OA\Property(property: 'total_siswa', type: 'integer'),
+                        new OA\Property(property: 'guru_aktif', type: 'integer'),
+                        new OA\Property(property: 'mitra_dudi', type: 'integer'),
+                        new OA\Property(property: 'pengajuan_menunggu', type: 'integer'),
+                    ]),
+                ],
+            )),
+            new OA\Response(response: 401, description: 'Token tidak valid.'),
+            new OA\Response(response: 403, description: 'Role tidak diizinkan (bukan admin).'),
+        ],
+    )]
     public function index()
     {
         return response()->json([

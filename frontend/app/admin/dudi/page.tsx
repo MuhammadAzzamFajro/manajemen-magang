@@ -10,6 +10,7 @@ import {
   ShieldX, CheckCircle, RotateCw, MapPin, Phone, User,
 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
+import { toast } from '@/lib/toast';
 
 // ─── Avatar helpers ────────────────────────────────────────────────────────────
 const getInitials = (name: string) => {
@@ -323,19 +324,21 @@ export default function AdminDudiPage() {
       queryClient.invalidateQueries({ queryKey: ['admin-dudi'] });
       setIsModalOpen(false);
       resetForm();
+      toast.success(editingDudi ? 'Data DUDI berhasil diperbarui.' : 'Mitra DUDI baru berhasil ditambahkan.');
     },
-    onError: (e: any) => setErrorMsg(e.message || 'Gagal menyimpan data DUDI.'),
+    onError: (e: any) => { setErrorMsg(e.message || 'Gagal menyimpan data DUDI.'); toast.error(e.message || 'Gagal menyimpan data DUDI.'); },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteDudi(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-dudi'] }); setDeleteTarget(null); },
-    onError: (e: any) => setErrorMsg(e.message || 'Gagal menghapus DUDI.'),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-dudi'] }); setDeleteTarget(null); toast.success('Data DUDI berhasil dihapus.'); },
+    onError: (e: any) => toast.error(e.message || 'Gagal menghapus DUDI.'),
   });
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => toggleDudiVerifikasi(id, status),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-dudi'] }); setStatusTarget(null); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-dudi'] }); setStatusTarget(null); toast.success('Status verifikasi DUDI berhasil diubah.'); },
+    onError: (e: any) => toast.error(e.message || 'Gagal mengubah status verifikasi DUDI.'),
   });
 
   const handleSaveStatus = (newStatus: string) => {

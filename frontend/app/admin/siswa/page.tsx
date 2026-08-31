@@ -3,24 +3,17 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  getSiswas, createSiswa, updateSiswa, deleteSiswa, plottingSiswa,
-  getGurus, getDudis
+  getSiswas, createSiswa, updateSiswa, deleteSiswa, plottingSiswa, prosesPengajuanSiswa,
+  getGurus, getDudis, getKelases,
 } from '@/lib/db';
 import {
   Plus, Search, ChevronDown, MoreHorizontal, Edit2, Trash2,
   AlertTriangle, Lock, Mail, Hash, GraduationCap, Users, Briefcase, Clock,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  ShieldX, UserCheck, Building2, Key, Copy, Check, Filter, RotateCw,
+  ShieldX, UserCheck, Building2, Key, Copy, Check, Filter, RotateCw, FileCheck,
 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
-
-// ─── KELAS OPTIONS ─────────────────────────────────────────────────────────────
-const KELAS_OPTIONS = [
-  'XII RPL 1', 'XII RPL 2', 'XII RPL 3', 'XII RPL A',
-  'XI RPL 1', 'XI RPL 2',
-  'XII TKJ 1', 'XII TKJ 2', 'XI TKJ 1',
-  'XII MM 1', 'XII MM 2', 'XII MM 3',
-];
+import { toast } from '@/lib/toast';
 
 // ─── Avatar helpers ────────────────────────────────────────────────────────────
 const getInitials = (name: string) => {
@@ -42,8 +35,8 @@ const getAvatarBg = (name: string) => {
 };
 
 // ─── 3-dot Action Menu ────────────────────────────────────────────────────────
-function ActionMenu({ siswa, onEdit, onPlotting, onToggleStatus, onDelete }: {
-  siswa: any; onEdit: () => void; onPlotting: () => void; onToggleStatus: () => void; onDelete: () => void;
+function ActionMenu({ siswa, onEdit, onPlotting, onProsesPengajuan, onToggleStatus, onDelete }: {
+  siswa: any; onEdit: () => void; onPlotting: () => void; onProsesPengajuan: () => void; onToggleStatus: () => void; onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -63,6 +56,12 @@ function ActionMenu({ siswa, onEdit, onPlotting, onToggleStatus, onDelete }: {
       </button>
       {open && (
         <div className="absolute right-0 top-8 z-40 w-52 bg-white border border-gray-200 rounded-xl shadow-lg py-1.5 text-sm">
+          {siswa.status_magang === 'pengajuan' && (
+            <button onClick={() => { onProsesPengajuan(); setOpen(false); }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-amber-700 bg-amber-50/80 hover:bg-amber-100 transition-colors font-semibold border-b border-amber-100">
+              <FileCheck className="w-3.5 h-3.5 text-amber-600" /> Proses Pengajuan
+            </button>
+          )}
           <button onClick={() => { onEdit(); setOpen(false); }}
             className="w-full flex items-center gap-2.5 px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors">
             <Edit2 className="w-3.5 h-3.5 text-gray-400" /> Edit Data Siswa
@@ -453,6 +452,179 @@ function DeleteDialog({ isOpen, onClose, onConfirm, siswa, isLoading }: {
   );
 }
 
+// ─── Process Pengajuan Modal ───────────────────────────────────────────────────
+function ProcessPengajuanModal({
+  isOpen,
+  onClose,
+  siswa,
+  gurus = [],
+  onApprove,
+  onReject,
+  isLoading,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  siswa: any;
+  gurus: any[];
+  onApprove: (guruId: number) => void;
+  onReject: (catatan: string) => void;
+  isLoading: boolean;
+}) {
+  const [guruId, setGuruId] = useState('');
+  const [showRejectForm, setShowRejectForm] = useState(false);
+  const [catatanPenolakan, setCatatanPenolakan] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setGuruId('');
+      setShowRejectForm(false);
+      setCatatanPenolakan('');
+    }
+  }, [isOpen]);
+
+  if (!isOpen || !siswa) return null;
+
+  const activePengajuan = Array.isArray(siswa.pengajuan) && siswa.pengajuan.length > 0
+    ? siswa.pengajuan[0]
+    : siswa.pengajuan_terakhir;
+  const dudiName = activePengajuan?.tempat_magang?.nama_perusahaan || activePengajuan?.tempatMagang?.nama_perusahaan || '—';
+  const posisi = activePengajuan?.posisi_diminati || '—';
+  const tglMulai = activePengajuan?.tanggal_mulai_usulan ? activePengajuan.tanggal_mulai_usulan.split('T')[0] : '—';
+  const tglSelesai = activePengajuan?.tanggal_selesai_usulan ? activePengajuan.tanggal_selesai_usulan.split('T')[0] : '—';
+
+  const handleApproveSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!guruId) return;
+    onApprove(parseInt(guruId));
+  };
+
+  const handleRejectSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onReject(catatanPenolakan);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-xs" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 overflow-hidden animate-in zoom-in-95 duration-150">
+        {/* Icon Header */}
+        <div className="flex items-start gap-3.5 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <FileCheck className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-gray-900 leading-tight">Proses Pengajuan Magang</h3>
+            <p className="text-xs text-gray-500 mt-1 leading-snug">
+              Tinjau pengajuan magang dari <span className="font-semibold text-gray-800">{siswa.nama_lengkap}</span>.
+            </p>
+          </div>
+        </div>
+
+        {/* Ringkasan Detail Pengajuan */}
+        <div className="bg-amber-50/60 border border-amber-200/70 rounded-xl p-3.5 mb-4 space-y-2 text-xs">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500 font-medium">Perusahaan DUDI:</span>
+            <span className="font-bold text-gray-900">{dudiName}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500 font-medium">Posisi Diminati:</span>
+            <span className="font-semibold text-indigo-700">{posisi}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500 font-medium">Usulan Periode:</span>
+            <span className="font-mono text-gray-700">{tglMulai} s.d. {tglSelesai}</span>
+          </div>
+        </div>
+
+        {!showRejectForm ? (
+          <form onSubmit={handleApproveSubmit} className="space-y-4">
+            <div>
+              <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-1.5">
+                ALOKASIKAN GURU PEMBIMBING <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  value={guruId}
+                  onChange={(e) => setGuruId(e.target.value)}
+                  required
+                  className="w-full px-3.5 py-2.5 text-xs font-medium border border-gray-300 rounded-xl bg-white focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer"
+                >
+                  <option value="">— Pilih Guru Pembimbing —</option>
+                  {gurus.map((g: any) => (
+                    <option key={g.id} value={g.id}>
+                      {g.nama_lengkap} ({typeof g.jurusan === 'object' ? g.jurusan?.nama : (g.jurusan || 'Guru')})
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-2.5 pt-3 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setShowRejectForm(true)}
+                className="px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition-colors"
+              >
+                Tolak Pengajuan
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-3 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading || !guruId}
+                  className="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 rounded-lg transition-colors inline-flex items-center gap-1.5 shadow-sm shadow-emerald-200"
+                >
+                  {isLoading ? 'Memproses...' : 'Setujui Pengajuan'}
+                </button>
+              </div>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleRejectSubmit} className="space-y-4">
+            <div>
+              <label className="block text-[10px] font-bold text-rose-600 uppercase tracking-wider mb-1.5">
+                ALASAN / CATATAN PENOLAKAN
+              </label>
+              <textarea
+                value={catatanPenolakan}
+                onChange={(e) => setCatatanPenolakan(e.target.value)}
+                placeholder="Contoh: Kuota posisi di DUDI ini sudah penuh..."
+                rows={3}
+                className="w-full px-3 py-2 text-xs border border-rose-200 rounded-xl focus:outline-none focus:border-rose-500 bg-rose-50/20"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setShowRejectForm(false)}
+                className="px-3 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Kembali
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-60 rounded-lg transition-colors"
+              >
+                {isLoading ? 'Memproses...' : 'Konfirmasi Tolak'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminSiswaPage() {
   const queryClient = useQueryClient();
@@ -469,6 +641,7 @@ export default function AdminSiswaPage() {
   const [editingSiswa, setEditingSiswa] = useState<any>(null);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [plottingTarget, setPlottingTarget] = useState<any>(null);
+  const [prosesPengajuanTarget, setProsesPengajuanTarget] = useState<any>(null);
   const [statusTarget, setStatusTarget] = useState<any>(null);
   const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string } | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
@@ -476,7 +649,7 @@ export default function AdminSiswaPage() {
   // Form states
   const [nis, setNis] = useState('');
   const [namaLengkap, setNamaLengkap] = useState('');
-  const [kelasInput, setKelasInput] = useState('');
+  const [kelasId, setKelasId] = useState<number | string>('');
   const [emailKontak, setEmailKontak] = useState('');
   const [password, setPassword] = useState('');
 
@@ -489,6 +662,7 @@ export default function AdminSiswaPage() {
 
   const { data: gurus = [] } = useQuery({ queryKey: ['admin-guru-list'], queryFn: () => getGurus() });
   const { data: dudis = [] } = useQuery({ queryKey: ['admin-dudi-list'], queryFn: () => getDudis() });
+  const { data: kelasData = [] } = useQuery({ queryKey: ['admin-kelas'], queryFn: () => getKelases(), staleTime: 30_000 });
 
   // ─── Client-side Filter & Pagination ─────────────────────────────────────
   const filtered = useMemo(() => {
@@ -498,12 +672,12 @@ export default function AdminSiswaPage() {
       list = list.filter(s =>
         s.nama_lengkap?.toLowerCase().includes(q) ||
         s.nis?.includes(q) ||
-        s.kelas?.toLowerCase().includes(q) ||
+        s.kelas?.nama?.toLowerCase().includes(q) ||
         s.email_kontak?.toLowerCase().includes(q) ||
         s.user?.email?.toLowerCase().includes(q)
       );
     }
-    if (filterKelas) list = list.filter(s => s.kelas === filterKelas);
+    if (filterKelas) list = list.filter(s => s.kelas?.nama === filterKelas);
     if (filterIndustri) {
       list = list.filter(s => {
         const p = s.penempatan?.[0];
@@ -521,9 +695,11 @@ export default function AdminSiswaPage() {
 
   // Filter dropdown lists
   const kelasList = useMemo(() => {
-    const set = new Set([...KELAS_OPTIONS, ...(rawSiswas as any[]).map(s => s.kelas).filter(Boolean)]);
+    const set = new Set<string>((kelasData as any[]).map(k => k.nama).filter(Boolean));
+    (rawSiswas as any[]).forEach(s => { if (s.kelas?.nama) set.add(s.kelas.nama); });
     return [...set].sort();
-  }, [rawSiswas]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawSiswas, kelasData]);
 
   const industriList = useMemo(() => {
     const set = new Set((dudis as any[]).map(d => d.nama_perusahaan).filter(Boolean));
@@ -536,6 +712,7 @@ export default function AdminSiswaPage() {
   const sedangMagang = all.filter(s => s.status_magang === 'sedang_magang').length;
   const belumMagang = all.filter(s => s.status_magang === 'belum_magang' || !s.status_magang).length;
   const lulusMagang = all.filter(s => s.status_magang === 'lulus').length;
+  const pengajuanMenunggu = all.filter(s => s.status_magang === 'pengajuan' && Array.isArray(s.pengajuan) && s.pengajuan.some((p: any) => p.status === 'menunggu')).length;
 
   // ─── Checkbox Selection ──────────────────────────────────────────────────
   const allPageSelected = paginated.length > 0 && paginated.every(s => selected.has(s.id));
@@ -548,14 +725,14 @@ export default function AdminSiswaPage() {
   };
 
   // ─── Form Helpers ────────────────────────────────────────────────────────
-  const resetForm = () => { setNis(''); setNamaLengkap(''); setKelasInput(''); setEmailKontak(''); setPassword(''); setErrorMsg(''); };
+  const resetForm = () => { setNis(''); setNamaLengkap(''); setKelasId(''); setEmailKontak(''); setPassword(''); setErrorMsg(''); };
 
   const openAdd = () => { setEditingSiswa(null); resetForm(); setIsModalOpen(true); };
   const openEdit = (s: any) => {
     setEditingSiswa(s);
     setNis(s.nis || '');
     setNamaLengkap(s.nama_lengkap || '');
-    setKelasInput(s.kelas || '');
+    setKelasId(s.kelas_id || '');
     setEmailKontak(s.email_kontak || s.user?.email || '');
     setPassword('');
     setErrorMsg('');
@@ -568,7 +745,7 @@ export default function AdminSiswaPage() {
       const payload = {
         nis,
         nama_lengkap: namaLengkap,
-        kelas: kelasInput,
+        kelas_id: kelasId ? Number(kelasId) : null,
         email: emailKontak,
         email_kontak: emailKontak,
         status_magang: editingSiswa ? editingSiswa.status_magang : 'belum_magang',
@@ -582,6 +759,7 @@ export default function AdminSiswaPage() {
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['admin-siswa'] });
       setIsModalOpen(false);
+      toast.success(editingSiswa ? 'Data siswa berhasil diperbarui.' : 'Siswa baru berhasil ditambahkan.');
       if (!editingSiswa && data?._usedEmail) {
         setCreatedCredentials({
           email: data._usedEmail,
@@ -590,13 +768,13 @@ export default function AdminSiswaPage() {
       }
       resetForm();
     },
-    onError: (e: any) => setErrorMsg(e.message || 'Gagal menyimpan data.'),
+    onError: (e: any) => { setErrorMsg(e.message || 'Gagal menyimpan data.'); toast.error(e.message || 'Gagal menyimpan data.'); },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteSiswa(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-siswa'] }); setDeleteTarget(null); },
-    onError: (e: any) => setErrorMsg(e.message || 'Gagal menghapus siswa.'),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-siswa'] }); setDeleteTarget(null); toast.success('Data siswa berhasil dihapus.'); },
+    onError: (e: any) => toast.error(e.message || 'Gagal menghapus siswa.'),
   });
 
   const plottingMutation = useMutation({
@@ -606,8 +784,26 @@ export default function AdminSiswaPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-siswa'] });
       setPlottingTarget(null);
+      toast.success('Plotting pembimbing & DUDI berhasil disimpan.');
     },
-    onError: (e: any) => setErrorMsg(e.message || 'Gagal melakukan plotting.'),
+    onError: (e: any) => toast.error(e.message || 'Gagal melakukan plotting.'),
+  });
+
+  const prosesPengajuanMutation = useMutation({
+    mutationFn: (payload: { status: 'disetujui' | 'ditolak'; guru_id?: number; catatan_penolakan?: string }) => {
+      const activePengajuan = Array.isArray(prosesPengajuanTarget?.pengajuan) && prosesPengajuanTarget.pengajuan.length > 0
+        ? prosesPengajuanTarget.pengajuan[0]
+        : prosesPengajuanTarget?.pengajuan_terakhir;
+      if (!activePengajuan?.id) throw new Error('Data pengajuan magang siswa tidak ditemukan.');
+      return prosesPengajuanSiswa(activePengajuan.id, payload);
+    },
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-siswa'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-penempatan'] });
+      setProsesPengajuanTarget(null);
+      toast.success(res?.message || 'Pengajuan magang berhasil diproses.');
+    },
+    onError: (e: any) => toast.error(e.message || 'Gagal memproses pengajuan magang.'),
   });
 
   const handleSaveSiswaStatus = (newStatus: string) => {
@@ -617,54 +813,71 @@ export default function AdminSiswaPage() {
   return (
     <div className="p-0">
 
-      {/* ── Stat cards (4 Cards) ────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+      {/* ── Stat cards (5 Cards) ────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-5">
         {/* Card 1: Total Siswa */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-5">
-          <div className="flex items-start justify-between mb-4">
-            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Total Siswa</p>
-            <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
-              <Users className="w-4 h-4 text-blue-500" />
+        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Siswa</p>
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <Users className="w-3.5 h-3.5 text-blue-500" />
             </div>
           </div>
-          <p className="text-5xl font-black text-gray-900 leading-none">{totalSiswa}</p>
-          <p className="text-xs text-gray-400 mt-2">Siswa terdaftar</p>
+          <p className="text-4xl font-black text-gray-900 leading-none">{totalSiswa}</p>
+          <p className="text-xs text-gray-400 mt-1.5">Siswa terdaftar</p>
         </div>
 
         {/* Card 2: Sedang Magang */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-5">
-          <div className="flex items-start justify-between mb-4">
-            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Sedang Magang</p>
-            <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
-              <Briefcase className="w-4 h-4 text-blue-500" />
+        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sedang Magang</p>
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <Briefcase className="w-3.5 h-3.5 text-blue-500" />
             </div>
           </div>
-          <p className="text-5xl font-black text-gray-900 leading-none">{sedangMagang}</p>
-          <p className="text-xs text-gray-400 mt-2">Aktif di industri</p>
+          <p className="text-4xl font-black text-gray-900 leading-none">{sedangMagang}</p>
+          <p className="text-xs text-gray-400 mt-1.5">Aktif di industri</p>
         </div>
 
-        {/* Card 3: Belum Magang */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-5">
-          <div className="flex items-start justify-between mb-4">
-            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Belum Magang</p>
-            <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center">
-              <Clock className="w-4 h-4 text-amber-500" />
+        {/* Card 3: Pengajuan Menunggu */}
+        <div className={`rounded-2xl border p-4 ${pengajuanMenunggu > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-200'}`}>
+          <div className="flex items-start justify-between mb-3">
+            <p className={`text-[10px] font-bold uppercase tracking-widest ${pengajuanMenunggu > 0 ? 'text-amber-600' : 'text-gray-400'}`}>Perlu Ditinjau</p>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${pengajuanMenunggu > 0 ? 'bg-amber-200' : 'bg-amber-100'}`}>
+              <FileCheck className="w-3.5 h-3.5 text-amber-600" />
             </div>
           </div>
-          <p className="text-5xl font-black text-gray-900 leading-none">{belumMagang}</p>
-          <p className="text-xs text-gray-400 mt-2">Perlu ditempatkan</p>
+          <p className={`text-4xl font-black leading-none ${pengajuanMenunggu > 0 ? 'text-amber-700' : 'text-gray-900'}`}>{pengajuanMenunggu}</p>
+          <button
+            onClick={() => { setFilterStatus('pengajuan'); setPage(1); }}
+            className={`text-xs mt-1.5 transition-colors ${pengajuanMenunggu > 0 ? 'text-amber-600 hover:text-amber-800 font-semibold underline underline-offset-2' : 'text-gray-400 cursor-default'}`}
+          >
+            {pengajuanMenunggu > 0 ? 'Lihat pengajuan →' : 'Semua diproses'}
+          </button>
         </div>
 
-        {/* Card 4: Lulus Magang */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-5">
-          <div className="flex items-start justify-between mb-4">
-            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Lulus Magang</p>
-            <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">
-              <GraduationCap className="w-4 h-4 text-green-500" />
+        {/* Card 4: Belum Magang */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Belum Magang</p>
+            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+              <Clock className="w-3.5 h-3.5 text-slate-500" />
             </div>
           </div>
-          <p className="text-5xl font-black text-gray-900 leading-none">{lulusMagang}</p>
-          <p className="text-xs text-gray-400 mt-2">Selesai program</p>
+          <p className="text-4xl font-black text-gray-900 leading-none">{belumMagang}</p>
+          <p className="text-xs text-gray-400 mt-1.5">Perlu ditempatkan</p>
+        </div>
+
+        {/* Card 5: Lulus Magang */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Lulus Magang</p>
+            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+              <GraduationCap className="w-3.5 h-3.5 text-green-500" />
+            </div>
+          </div>
+          <p className="text-4xl font-black text-gray-900 leading-none">{lulusMagang}</p>
+          <p className="text-xs text-gray-400 mt-1.5">Selesai program</p>
         </div>
       </div>
 
@@ -861,7 +1074,7 @@ export default function AdminSiswaPage() {
 
                       {/* Kelas */}
                       <td className="px-4 py-3.5">
-                        <span className="text-sm font-medium text-gray-700">{s.kelas}</span>
+                        <span className="text-sm font-medium text-gray-700">{s.kelas?.nama}</span>
                       </td>
 
                       {/* Status Magang */}
@@ -896,6 +1109,7 @@ export default function AdminSiswaPage() {
                           siswa={s}
                           onEdit={() => openEdit(s)}
                           onPlotting={() => setPlottingTarget(s)}
+                          onProsesPengajuan={() => setProsesPengajuanTarget(s)}
                           onToggleStatus={() => setStatusTarget(s)}
                           onDelete={() => setDeleteTarget(s)}
                         />
@@ -998,10 +1212,17 @@ export default function AdminSiswaPage() {
                   type="text"
                   inputMode="numeric"
                   value={nis}
-                  onChange={e => setNis(e.target.value.replace(/\D/g, ''))}
-                  required
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = e.target.value;
+                    if (!/^\d*$/.test(value)) {
+                      e.target.value = value.replace(/\D/g, '');
+                    }
+                    setNis(e.target.value);
+                  }}
+                  readOnly={!!editingSiswa}
+                  required={!editingSiswa}
                   placeholder="Contoh: 220533604138"
-                  className="w-full px-3.5 py-2.5 text-sm font-mono font-medium border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 transition-colors bg-white"
+                  className="w-full px-3.5 py-2.5 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 transition-colors bg-white disabled:bg-slate-50 disabled:text-gray-400"
                 />
               </div>
 
@@ -1011,13 +1232,13 @@ export default function AdminSiswaPage() {
                 </label>
                 <div className="relative">
                   <select
-                    value={kelasInput}
-                    onChange={e => setKelasInput(e.target.value)}
+                    value={kelasId}
+                    onChange={e => setKelasId(e.target.value)}
                     required
                     className="w-full px-3.5 py-2.5 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 appearance-none bg-white cursor-pointer"
                   >
                     <option value="">— Pilih Kelas —</option>
-                    {KELAS_OPTIONS.map(k => <option key={k} value={k}>{k}</option>)}
+                    {(kelasData as any[]).map(k => <option key={k.id} value={k.id}>{k.nama}</option>)}
                   </select>
                   <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -1059,6 +1280,17 @@ export default function AdminSiswaPage() {
         dudis={dudis}
         onSave={(payload) => plottingMutation.mutate(payload)}
         isLoading={plottingMutation.isPending}
+      />
+
+      {/* ── Modal Process Pengajuan Magang ─────────────────────────────────── */}
+      <ProcessPengajuanModal
+        isOpen={!!prosesPengajuanTarget}
+        onClose={() => setProsesPengajuanTarget(null)}
+        siswa={prosesPengajuanTarget}
+        gurus={gurus}
+        onApprove={(guruId) => prosesPengajuanMutation.mutate({ status: 'disetujui', guru_id: guruId })}
+        onReject={(catatan) => prosesPengajuanMutation.mutate({ status: 'ditolak', catatan_penolakan: catatan })}
+        isLoading={prosesPengajuanMutation.isPending}
       />
 
       {/* ── Modal Dialog: Ubah Status Siswa ─────────────────────────────────── */}

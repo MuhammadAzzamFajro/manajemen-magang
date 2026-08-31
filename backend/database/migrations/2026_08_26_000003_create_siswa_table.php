@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('nis')->unique();
             $table->string('nama_lengkap');
-            $table->string('kelas');
+            $table->string('kelas')->nullable();
             $table->string('email_kontak')->nullable();
             $table->enum('status_magang', ['belum_magang','pengajuan','sedang_magang','lulus'])->default('belum_magang');
             $table->timestamps();

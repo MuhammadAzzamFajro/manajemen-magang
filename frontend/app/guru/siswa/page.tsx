@@ -189,7 +189,7 @@ export default function GuruSiswaPage() {
                       </td>
                       {/* Kelas */}
                       <td className="px-5 py-4">
-                        <span className="text-sm text-gray-700 font-medium">{b.siswa?.kelas || '-'}</span>
+                        <span className="text-sm text-gray-700 font-medium">{b.siswa?.kelas?.nama || '-'}</span>
                       </td>
                       {/* Tempat Magang */}
                       <td className="px-5 py-4">

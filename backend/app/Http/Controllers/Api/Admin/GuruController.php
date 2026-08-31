@@ -10,18 +10,38 @@ use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 
 class GuruController extends Controller
 {
+    #[OA\Get(
+        path: '/api/admin/guru',
+        summary: 'Daftar guru',
+        description: 'Daftar semua guru beserta jumlah penempatan/siswa bimbingan.',
+        tags: ['Admin'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'search', in: 'query', description: 'Cari berdasarkan nama atau NIP.', required: false, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Daftar guru.', content: new OA\JsonContent(
+                type: 'array',
+                items: new OA\Items(ref: '#/components/schemas/Guru'),
+            )),
+        ],
+    )]
     public function index(Request $request)
     {
-        $query = Guru::with('user.profile')
+        $query = Guru::with('user.profile', 'jurusan')
             ->withCount('penempatan')
             ->orderByRaw("FIELD(status_akun, 'aktif', 'nonaktif')");
 
         if ($request->search) {
             $query->where('nama_lengkap', 'like', "%{$request->search}%")
-                  ->orWhere('nip', 'like', "%{$request->search}%");
+                  ->orWhere('nip', 'like', "%{$request->search}%")
+                  ->orWhereHas('jurusan', function ($q) use ($request) {
+                      $q->where('nama', 'like', "%{$request->search}%");
+                  });
         }
 
         return response()->json([
@@ -30,13 +50,34 @@ class GuruController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: '/api/admin/guru',
+        summary: 'Tambah guru',
+        description: 'Membuat akun guru baru beserta user & profile (role guru).',
+        tags: ['Admin'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['nip', 'nama_lengkap', 'email', 'password'],
+            properties: [
+                new OA\Property(property: 'nip', type: 'string', minLength: 18, maxLength: 18, example: '199003202015012004'),
+                new OA\Property(property: 'nama_lengkap', type: 'string', example: 'Antigravity Andro'),
+                new OA\Property(property: 'email', type: 'string', format: 'email', example: 'guru@simmas.sch.id'),
+                new OA\Property(property: 'jurusan', type: 'string', nullable: true, example: 'Rekayasa Perangkat Lunak'),
+                new OA\Property(property: 'password', type: 'string', format: 'password', minLength: 6, example: 'password'),
+            ],
+        )),
+        responses: [
+            new OA\Response(response: 201, description: 'Guru berhasil ditambahkan.', content: new OA\JsonContent(ref: '#/components/schemas/Guru')),
+            new OA\Response(response: 422, description: 'Validasi gagal (NIP/email duplikat, format salah).'),
+        ],
+    )]
     public function store(Request $request)
     {
         $request->validate([
             'nip'          => 'required|string|size:18|regex:/^[0-9]+$/|unique:guru,nip',
             'nama_lengkap' => 'required|string|max:255',
             'email'        => 'required|email|unique:users,email',
-            'jurusan'      => 'nullable|string|max:255',
+            'jurusan_id'   => 'nullable|exists:jurusan,id',
             'password'     => 'required|string|min:6',
         ], [
             'nip.required' => 'NIP wajib diisi.',
@@ -64,7 +105,7 @@ class GuruController extends Controller
                 'user_id'      => $user->id,
                 'nip'          => $request->nip,
                 'nama_lengkap' => $request->nama_lengkap,
-                'jurusan'      => $request->jurusan,
+                'jurusan_id'   => $request->jurusan_id,
                 'status_akun'  => 'aktif',
             ]);
 
@@ -73,11 +114,32 @@ class GuruController extends Controller
             return response()->json([
                 'status'  => true,
                 'message' => 'Guru berhasil ditambahkan.',
-                'data'    => $guru->load('user.profile')
+                'data'    => $guru->load('user.profile', 'jurusan')
             ], 201);
         });
     }
 
+    #[OA\Put(
+        path: '/api/admin/guru/{id}',
+        summary: 'Perbarui data guru',
+        tags: ['Admin'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['nip', 'nama_lengkap'],
+            properties: [
+                new OA\Property(property: 'nip', type: 'string', minLength: 18, maxLength: 18),
+                new OA\Property(property: 'nama_lengkap', type: 'string'),
+                new OA\Property(property: 'jurusan', type: 'string', nullable: true),
+            ],
+        )),
+        responses: [
+            new OA\Response(response: 200, description: 'Guru berhasil diperbarui.', content: new OA\JsonContent(ref: '#/components/schemas/Guru')),
+            new OA\Response(response: 404, description: 'Guru tidak ditemukan.'),
+        ],
+    )]
     public function update(Request $request, $id)
     {
         $guru = Guru::findOrFail($id);
@@ -85,7 +147,7 @@ class GuruController extends Controller
         $request->validate([
             'nip'          => 'required|string|size:18|regex:/^[0-9]+$/|unique:guru,nip,' . $id,
             'nama_lengkap' => 'required|string|max:255',
-            'jurusan'      => 'nullable|string|max:255',
+            'jurusan_id'   => 'nullable|exists:jurusan,id',
         ], [
             'nip.required' => 'NIP wajib diisi.',
             'nip.size'     => 'NIP harus berisi tepat 18 digit angka.',
@@ -95,7 +157,7 @@ class GuruController extends Controller
         $guru->update([
             'nip'          => $request->nip,
             'nama_lengkap' => $request->nama_lengkap,
-            'jurusan'      => $request->jurusan,
+            'jurusan_id'   => $request->jurusan_id ?? $guru->jurusan_id,
         ]);
 
         if ($guru->user) {
@@ -110,10 +172,22 @@ class GuruController extends Controller
         return response()->json([
             'status'  => true,
             'message' => 'Data guru berhasil diperbarui.',
-            'data'    => $guru
+            'data'    => $guru->load('jurusan')
         ]);
     }
 
+    #[OA\Patch(
+        path: '/api/admin/guru/{id}/status',
+        summary: 'Ubah status akun guru (aktif/nonaktif)',
+        tags: ['Admin'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Status akun berhasil diubah.', content: new OA\JsonContent(ref: '#/components/schemas/Guru')),
+        ],
+    )]
     public function updateStatus($id)
     {
         $guru = Guru::findOrFail($id);
@@ -129,6 +203,20 @@ class GuruController extends Controller
         ]);
     }
 
+    #[OA\Delete(
+        path: '/api/admin/guru/{id}',
+        summary: 'Hapus guru',
+        description: 'Menghapus guru beserta akun user-nya. Ditolak jika masih membimbing siswa aktif.',
+        tags: ['Admin'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Guru berhasil dihapus.'),
+            new OA\Response(response: 422, description: 'Gagal: guru masih membimbing siswa aktif.'),
+        ],
+    )]
     public function destroy($id)
     {
         $guru = Guru::findOrFail($id);

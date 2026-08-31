@@ -7,9 +7,23 @@ use App\Models\JurnalHarian;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use OpenApi\Attributes as OA;
 
 class JurnalController extends Controller
 {
+    #[OA\Get(
+        path: '/api/siswa/jurnal',
+        summary: 'Daftar jurnal harian siswa',
+        description: 'Riwayat jurnal harian milik siswa yang sedang login, urut tanggal terbaru.',
+        tags: ['Siswa'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Daftar jurnal.', content: new OA\JsonContent(
+                type: 'array',
+                items: new OA\Items(ref: '#/components/schemas/JurnalHarian'),
+            )),
+        ],
+    )]
     public function index(Request $request)
     {
         $siswa = $request->user()->siswa;
@@ -24,6 +38,27 @@ class JurnalController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: '/api/siswa/jurnal',
+        summary: 'Buat jurnal harian',
+        description: 'Menyimpan jurnal harian baru. `foto_bukti` dikirim sebagai multipart/form-data (opsional). Status awal menunggu verifikasi guru.',
+        tags: ['Siswa'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\MediaType(
+            mediaType: 'multipart/form-data',
+            schema: new OA\Schema(required: ['tanggal', 'uraian_kegiatan'], properties: [
+                new OA\Property(property: 'tanggal', type: 'string', format: 'date', example: '2026-08-30'),
+                new OA\Property(property: 'uraian_kegiatan', type: 'string', minLength: 15),
+                new OA\Property(property: 'kendala', type: 'string', nullable: true),
+                new OA\Property(property: 'solusi', type: 'string', nullable: true),
+                new OA\Property(property: 'foto_bukti', type: 'string', format: 'binary', nullable: true),
+            ]),
+        )),
+        responses: [
+            new OA\Response(response: 201, description: 'Jurnal berhasil disimpan.', content: new OA\JsonContent(ref: '#/components/schemas/JurnalHarian')),
+            new OA\Response(response: 422, description: 'Validasi gagal.'),
+        ],
+    )]
     public function store(Request $request)
     {
         $request->validate([
@@ -60,6 +95,31 @@ class JurnalController extends Controller
         ], 201);
     }
 
+    #[OA\Put(
+        path: '/api/siswa/jurnal/{id}',
+        summary: 'Perbarui jurnal harian',
+        description: 'Mengubah jurnal milik siswa sendiri. Ditolak bila jurnal sudah disetujui guru.',
+        tags: ['Siswa'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(required: true, content: new OA\MediaType(
+            mediaType: 'multipart/form-data',
+            schema: new OA\Schema(required: ['tanggal', 'uraian_kegiatan'], properties: [
+                new OA\Property(property: 'tanggal', type: 'string', format: 'date'),
+                new OA\Property(property: 'uraian_kegiatan', type: 'string', minLength: 15),
+                new OA\Property(property: 'kendala', type: 'string', nullable: true),
+                new OA\Property(property: 'solusi', type: 'string', nullable: true),
+                new OA\Property(property: 'foto_bukti', type: 'string', format: 'binary', nullable: true),
+            ]),
+        )),
+        responses: [
+            new OA\Response(response: 200, description: 'Jurnal berhasil diperbarui.', content: new OA\JsonContent(ref: '#/components/schemas/JurnalHarian')),
+            new OA\Response(response: 404, description: 'Jurnal tidak ditemukan.'),
+            new OA\Response(response: 422, description: 'Jurnal sudah disetujui / validasi gagal.'),
+        ],
+    )]
     public function update(Request $request, $id)
     {
         $siswa = $request->user()->siswa;
@@ -104,6 +164,20 @@ class JurnalController extends Controller
         ]);
     }
 
+    #[OA\Delete(
+        path: '/api/siswa/jurnal/{id}',
+        summary: 'Hapus jurnal harian',
+        description: 'Menghapus jurnal milik siswa sendiri. Ditolak bila jurnal sudah disetujui guru.',
+        tags: ['Siswa'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Jurnal berhasil dihapus.'),
+            new OA\Response(response: 422, description: 'Jurnal sudah disetujui tidak bisa dihapus.'),
+        ],
+    )]
     public function destroy(Request $request, $id)
     {
         $siswa = $request->user()->siswa;

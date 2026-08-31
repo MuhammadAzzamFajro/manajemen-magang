@@ -1,15 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getKunjunganForGuru,
   createKunjungan,
   updateKunjungan,
   deleteKunjungan,
-  getDudis,
+  getDudisOptions,
 } from '@/lib/db';
 import { getAuthUser } from '@/lib/auth';
+import { toast } from '@/lib/toast';
 import {
   Plus,
   MapPin,
@@ -22,9 +23,20 @@ import {
   Clock,
   UploadCloud,
   CheckCircle2,
+  Camera,
+  CameraOff,
+  ImagePlus,
+  RefreshCw,
 } from 'lucide-react';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
+const resolvePhotoUrl = (path?: string | null) => {
+  if (!path) return null;
+  if (path.startsWith('http') || path.startsWith('data:')) return path;
+  const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '');
+  return `${base}/storage/${path.replace(/^\/+/, '')}`;
+};
+
 const formatIndonesianDate = (dateStr: string) => {
   if (!dateStr) return '-';
   const d = new Date(dateStr);
@@ -136,6 +148,235 @@ function DeleteConfirmModal({
   );
 }
 
+// ─── Camera / Photo Capture Section ────────────────────────────────────────────
+function PhotoCaptureSection({
+  preview,
+  onCapture,
+  onFileChange,
+  onClear,
+}: {
+  preview: string | null;
+  onCapture: (file: File) => void;
+  onFileChange: (file: File) => void;
+  onClear: () => void;
+}) {
+  const [tab, setTab] = useState<'camera' | 'upload'>('camera');
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState('');
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const stopCamera = useCallback(() => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    setCameraActive(false);
+  }, []);
+
+  useEffect(() => {
+    return () => stopCamera();
+  }, [stopCamera]);
+
+  const startCamera = useCallback(async (facing: 'environment' | 'user' = facingMode) => {
+    setCameraError('');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError('Kamera tidak didukung di perangkat/browser ini.');
+      return;
+    }
+    stopCamera();
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      setFacingMode(facing);
+      setCameraActive(true);
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
+        }
+      }, 50);
+    } catch (err: any) {
+      setCameraError(
+        err?.name === 'NotAllowedError'
+          ? 'Akses kamera ditolak. Izinkan akses kamera di browser.'
+          : err?.name === 'NotFoundError'
+          ? 'Kamera tidak ditemukan pada perangkat ini.'
+          : 'Gagal mengakses kamera. Coba gunakan upload file.'
+      );
+    }
+  }, [facingMode, stopCamera]);
+
+  const switchTab = (next: 'camera' | 'upload') => {
+    setTab(next);
+    if (next === 'camera' && !cameraActive && !preview) startCamera();
+    if (next === 'camera' && cameraActive) {
+      setTimeout(() => {
+        if (videoRef.current?.srcObject) videoRef.current.play().catch(() => {});
+      }, 50);
+    }
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth) {
+      setCameraError('Kamera belum siap, tunggu sebentar lalu coba lagi.');
+      return;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return;
+        const file = new File([blob], `kunjungan-${Date.now()}.jpg`, {
+          type: 'image/jpeg',
+        });
+        onCapture(file);
+        stopCamera();
+      },
+      'image/jpeg',
+      0.9
+    );
+  };
+
+  const swapCamera = () => {
+    startCamera(facingMode === 'environment' ? 'user' : 'environment');
+  };
+
+  return (
+    <div>
+      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+        FOTO DOKUMENTASI LAPANGAN
+      </label>
+
+      {/* Tab Switcher */}
+      <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl mb-3">
+        <button
+          type="button"
+          onClick={() => switchTab('camera')}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition ${
+            tab === 'camera' ? 'bg-white text-blue-600 shadow-xs' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <Camera className="w-3.5 h-3.5" /> Ambil Foto
+        </button>
+        <button
+          type="button"
+          onClick={() => switchTab('upload')}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition ${
+            tab === 'upload' ? 'bg-white text-blue-600 shadow-xs' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <ImagePlus className="w-3.5 h-3.5" /> Upload File
+        </button>
+      </div>
+
+      {/* Captured preview */}
+      {preview && (
+        <div className="relative rounded-xl overflow-hidden border border-gray-200 mb-3">
+          <img src={preview} alt="Preview foto" className="w-full max-h-64 object-cover" />
+          <button
+            type="button"
+            onClick={onClear}
+            className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/80 transition"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* No capture yet */}
+      {!preview && (
+        <>
+          {tab === 'camera' ? (
+            <div className="space-y-3">
+              {cameraActive ? (
+                <>
+                  <div className="relative rounded-xl overflow-hidden bg-black border border-gray-200">
+                    <video
+                      ref={videoRef}
+                      playsInline
+                      muted
+                      autoPlay
+                      className="w-full max-h-64 object-cover"
+                    />
+                  </div>
+                  <div className="flex items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={swapCamera}
+                      title="Ganti kamera"
+                      className="p-3 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={capturePhoto}
+                      title="Ambil foto"
+                      className="px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-2 transition"
+                    >
+                      <Camera className="w-4 h-4" /> AMBIL FOTO
+                    </button>
+                    <button
+                      type="button"
+                      onClick={stopCamera}
+                      title="Matikan kamera"
+                      className="p-3 rounded-full bg-rose-50 text-rose-500 hover:bg-rose-100 transition"
+                    >
+                      <CameraOff className="w-4 h-4" />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="border-2 border-dashed border-gray-200 hover:border-blue-400 bg-gray-50/50 rounded-xl p-5 text-center transition cursor-pointer">
+                  <button
+                    type="button"
+                    onClick={() => startCamera()}
+                    className="flex flex-col items-center gap-2 w-full"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                      <Camera className="w-6 h-6" />
+                    </div>
+                    <p className="text-xs font-semibold text-gray-500">Nyalakan kamera untuk foto langsung</p>
+                    <p className="text-[10px] text-gray-400">Ideal untuk mendokumentasikan kunjungan di lokasi</p>
+                  </button>
+                  {cameraError && (
+                    <p className="mt-2 text-[11px] text-rose-500 font-semibold">{cameraError}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="border-2 border-dashed border-gray-200 hover:border-blue-400 bg-gray-50/50 rounded-xl p-5 text-center transition cursor-pointer relative">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) onFileChange(file);
+                }}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div className="flex flex-col items-center gap-1.5 text-gray-400">
+                <UploadCloud className="w-6 h-6 text-gray-300" />
+                <p className="text-xs font-semibold text-gray-500">Klik untuk upload foto dari galeri/device</p>
+                <p className="text-[10px] text-gray-400">JPG, PNG atau WEBP (Maks. 4MB)</p>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function GuruKunjunganPage() {
   const user = getAuthUser();
@@ -171,7 +412,7 @@ export default function GuruKunjunganPage() {
 
   const { data: dudis = [] } = useQuery({
     queryKey: ['guru-dudi-list'],
-    queryFn: () => getDudis(),
+    queryFn: () => getDudisOptions(),
     enabled: isMounted,
   });
 
@@ -209,8 +450,9 @@ export default function GuruKunjunganPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guru-kunjungan'] });
       resetForm();
+      toast.success('Kunjungan baru berhasil disimpan.');
     },
-    onError: (err: any) => setErrorMsg(err.message || 'Gagal menyimpan kunjungan.'),
+    onError: (err: any) => { setErrorMsg(err.message || 'Gagal menyimpan kunjungan.'); toast.error(err.message || 'Gagal menyimpan kunjungan.'); },
   });
 
   const updateMutation = useMutation({
@@ -224,8 +466,9 @@ export default function GuruKunjunganPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guru-kunjungan'] });
       resetForm();
+      toast.success('Data kunjungan berhasil diperbarui.');
     },
-    onError: (err: any) => setErrorMsg(err.message || 'Gagal memperbarui kunjungan.'),
+    onError: (err: any) => { setErrorMsg(err.message || 'Gagal memperbarui kunjungan.'); toast.error(err.message || 'Gagal memperbarui kunjungan.'); },
   });
 
   const deleteMutation = useMutation({
@@ -233,7 +476,9 @@ export default function GuruKunjunganPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guru-kunjungan'] });
       setDeleteItem(null);
+      toast.success('Kunjungan berhasil dihapus.');
     },
+    onError: (err: any) => toast.error(err.message || 'Gagal menghapus kunjungan.'),
   });
 
   const resetForm = () => {
@@ -260,16 +505,8 @@ export default function GuruKunjunganPage() {
     setTanggalKunjungan(item.tanggal_kunjungan || '');
     setCatatanEvaluasi(item.catatan_evaluasi || '');
     setFotoFile(null);
-    setFotoPreview(item.foto_dokumentasi ? item.foto_dokumentasi : null);
+    setFotoPreview(item.foto_dokumentasi ? resolvePhotoUrl(item.foto_dokumentasi_url || item.foto_dokumentasi) : null);
     setIsModalOpen(true);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFotoFile(file);
-      setFotoPreview(URL.createObjectURL(file));
-    }
   };
 
   // ── Skeleton Loader ────────────────────────────────────────────────────────
@@ -384,10 +621,18 @@ export default function GuruKunjunganPage() {
                     <div className="flex items-center justify-between pt-1">
                       {k.foto_dokumentasi ? (
                         <button
-                          onClick={() => setSelectedPhotoModal(k.foto_dokumentasi)}
-                          className="px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                          onClick={() => setSelectedPhotoModal(resolvePhotoUrl(k.foto_dokumentasi_url || k.foto_dokumentasi))}
+                          title="Lihat foto dokumentasi kunjungan"
+                          className="group flex items-center gap-2 px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 text-xs font-semibold transition-colors"
                         >
-                          <ImageIcon className="w-3.5 h-3.5" /> Dokumentasi Kunjungan
+                          <span className="relative w-9 h-9 rounded-lg overflow-hidden border border-gray-200 shrink-0">
+                            <img
+                              src={resolvePhotoUrl(k.foto_dokumentasi_url || k.foto_dokumentasi) || undefined}
+                              alt="Foto dokumentasi"
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                            />
+                          </span>
+                          <span className="flex items-center gap-1"><ImageIcon className="w-3.5 h-3.5" /> Dokumentasi</span>
                         </button>
                       ) : (
                         <span className="text-[11px] text-gray-400 italic">Tidak ada foto dokumentasi</span>
@@ -499,35 +744,22 @@ export default function GuruKunjunganPage() {
 
           {/* Photo Upload Input */}
           <div>
-            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
-              FOTO DOKUMENTASI LAPANGAN (OPSIONAL)
-            </label>
-            <div className="border-2 border-dashed border-gray-200 hover:border-blue-400 bg-gray-50/50 rounded-xl p-4 text-center transition cursor-pointer relative">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              {fotoPreview ? (
-                <div className="flex flex-col items-center gap-2">
-                  <img
-                    src={fotoPreview}
-                    alt="Preview"
-                    className="w-24 h-24 object-cover rounded-lg border border-gray-200"
-                  />
-                  <p className="text-[11px] text-blue-600 font-semibold">Klik untuk mengganti foto</p>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-1.5 text-gray-400">
-                  <UploadCloud className="w-6 h-6 text-gray-300" />
-                  <p className="text-xs font-semibold text-gray-500">
-                    Klik untuk upload foto bersama pembimbing industri
-                  </p>
-                  <p className="text-[10px] text-gray-400">JPG, PNG atau WEBP (Maks. 4MB)</p>
-                </div>
-              )}
-            </div>
+            <PhotoCaptureSection
+              key={editingItem?.id ?? 'new'}
+              preview={fotoPreview}
+              onCapture={(file) => {
+                setFotoFile(file);
+                setFotoPreview(URL.createObjectURL(file));
+              }}
+              onFileChange={(file) => {
+                setFotoFile(file);
+                setFotoPreview(URL.createObjectURL(file));
+              }}
+              onClear={() => {
+                setFotoFile(null);
+                setFotoPreview(null);
+              }}
+            />
           </div>
 
           {/* Form Actions */}

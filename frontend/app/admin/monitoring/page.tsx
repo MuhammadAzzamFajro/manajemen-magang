@@ -56,7 +56,7 @@ export default function AdminMonitoringPage() {
         s.nama_guru?.toLowerCase().includes(q)
       );
     }
-    if (kelas) list = list.filter(s => s.kelas === kelas);
+    if (kelas) list = list.filter(s => s.kelas?.nama === kelas);
     if (filterStatus) list = list.filter(s => s.status === filterStatus);
     return list;
   }, [rawList, search, kelas, filterStatus]);
@@ -66,7 +66,7 @@ export default function AdminMonitoringPage() {
   const paginated = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
 
   const kelasList = useMemo(() => {
-    const set = new Set((rawList as any[]).map(s => s.kelas).filter(Boolean));
+    const set = new Set((rawList as any[]).map(s => s.kelas?.nama).filter(Boolean));
     return [...set].sort();
   }, [rawList]);
 
@@ -273,7 +273,7 @@ export default function AdminMonitoringPage() {
                           </div>
                           <div>
                             <p className="font-semibold text-gray-900 text-xs leading-none">{s.nama_lengkap}</p>
-                            <p className="text-[11px] font-medium text-gray-400 mt-0.5">{s.kelas}</p>
+                            <p className="text-[11px] font-medium text-gray-400 mt-0.5">{s.kelas?.nama}</p>
                           </div>
                         </div>
                       </td>
@@ -382,61 +382,49 @@ export default function AdminMonitoringPage() {
       </div>
 
       {/* ── Detail Modal ─────────────────────────────────────────────────────── */}
-      <Modal isOpen={!!selectedSiswa} onClose={() => setSelectedSiswa(null)} title="Detail Monitoring Siswa">
+      <Modal isOpen={!!selectedSiswa} onClose={() => setSelectedSiswa(null)} title="">
         {selectedSiswa && (
-          <div className="space-y-5 font-sans text-xs">
-            {/* Header Profile */}
-            <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-md flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-bold text-[10px] uppercase tracking-wider">
-                  {selectedSiswa.kelas}
-                </span>
-                <h3 className="text-xl font-black tracking-tight">{selectedSiswa.nama_lengkap}</h3>
-                <p className="text-slate-400 font-mono text-[11px]">NIS: {selectedSiswa.nis || '—'}</p>
+          <div className="space-y-5 font-sans">
+            {/* Header */}
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                <Activity className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                {selectedSiswa.status === 'bermasalah' ? (
-                  <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold">● Bermasalah</span>
-                ) : selectedSiswa.status === 'perlu_perhatian' ? (
-                  <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold">● Perlu Perhatian</span>
-                ) : (
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold">● Aktif Magang</span>
-                )}
+                <h3 className="text-base font-bold text-gray-900 leading-tight">Detail Monitoring Magang</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Rincian aktivitas, kehadiran, dan progres magang siswa.</p>
               </div>
             </div>
 
-            {/* DUDI & Guru */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-1.5">
-                <div className="flex items-center gap-2 text-gray-400 font-bold uppercase text-[10px] tracking-wider">
-                  <Building2 className="w-3.5 h-3.5 text-blue-600" /> Tempat Magang (DUDI)
-                </div>
-                <p className="font-bold text-gray-900 text-sm">{selectedSiswa.nama_dudi || '—'}</p>
-                <p className="text-gray-500 text-[11px]">Perusahaan Mitra Industri SMK</p>
+            {/* Nama Siswa & Tempat Magang */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Nama Siswa</p>
+                <p className="text-sm font-bold text-gray-900">{selectedSiswa.nama_lengkap}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {selectedSiswa.kelas?.nama} · {selectedSiswa.nis || '—'}
+                </p>
               </div>
-              <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-1.5">
-                <div className="flex items-center gap-2 text-gray-400 font-bold uppercase text-[10px] tracking-wider">
-                  <GraduationCap className="w-3.5 h-3.5 text-purple-600" /> Guru Pembimbing
-                </div>
-                <p className="font-bold text-gray-900 text-sm">{selectedSiswa.nama_guru || '—'}</p>
-                <p className="text-gray-500 text-[11px]">Pembimbing Lapangan Sekolah</p>
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tempat Magang</p>
+                <p className="text-sm font-bold text-blue-600">{selectedSiswa.nama_dudi || '—'}</p>
+                <p className="text-xs text-gray-400 mt-0.5">Guru: {selectedSiswa.nama_guru || '—'}</p>
               </div>
             </div>
 
             {/* Rekap Kehadiran */}
             <div className="space-y-2">
-              <h4 className="font-bold text-gray-400 text-[10px] uppercase tracking-wider">Rekapitulasi Kehadiran</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <h4 className="font-bold text-gray-500 text-xs">Rekap Kehadiran</h4>
+              <div className="grid grid-cols-4 gap-3">
                 {[
-                  { label: 'HADIR', value: selectedSiswa.rekap_presensi?.hadir ?? 0, color: 'emerald' },
-                  { label: 'SAKIT', value: selectedSiswa.rekap_presensi?.sakit ?? 0, color: 'amber' },
-                  { label: 'IZIN', value: selectedSiswa.rekap_presensi?.izin ?? 0, color: 'blue' },
-                  { label: 'ALFA', value: selectedSiswa.rekap_presensi?.alfa ?? 0, color: 'rose' },
-                ].map(({ label, value, color }) => (
-                  <div key={label} className={`p-3.5 rounded-xl bg-${color}-50/70 border border-${color}-200/60 text-center`}>
-                    <span className={`text-[10px] font-black uppercase tracking-widest text-${color}-600`}>{label}</span>
-                    <p className={`text-2xl font-black text-${color}-700 mt-1`}>{value}</p>
-                    <p className={`text-[10px] text-${color}-600 font-semibold`}>Hari</p>
+                  { label: 'Hadir', value: selectedSiswa.rekap_presensi?.hadir ?? 0, text: 'text-emerald-600', bg: 'bg-emerald-50' },
+                  { label: 'Sakit', value: selectedSiswa.rekap_presensi?.sakit ?? 0, text: 'text-amber-600', bg: 'bg-amber-50' },
+                  { label: 'Izin', value: selectedSiswa.rekap_presensi?.izin ?? 0, text: 'text-blue-600', bg: 'bg-blue-50' },
+                  { label: 'Alfa', value: selectedSiswa.rekap_presensi?.alfa ?? 0, text: 'text-rose-600', bg: 'bg-rose-50' },
+                ].map(({ label, value, text, bg }) => (
+                  <div key={label} className={`${bg} rounded-xl p-3 text-center`}>
+                    <p className={`text-[11px] font-semibold ${text}`}>{label}</p>
+                    <p className={`text-2xl font-black ${text} mt-1`}>{value}</p>
                   </div>
                 ))}
               </div>
@@ -444,31 +432,21 @@ export default function AdminMonitoringPage() {
 
             {/* Jurnal Terakhir */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="font-bold text-gray-400 text-[10px] uppercase tracking-wider">Jurnal Harian Terakhir</h4>
-                {selectedSiswa.jurnal_terakhir?.status_verifikasi === 'disetujui' ? (
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[10px]">✓ Disetujui Guru</span>
-                ) : (
-                  <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 font-bold text-[10px]">⏳ Menunggu Validasi</span>
-                )}
-              </div>
-              <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-2">
-                <div className="flex items-center justify-between text-[11px] text-gray-400 font-semibold border-b border-gray-200/50 pb-2">
-                  <span>📅 Tanggal: {selectedSiswa.jurnal_terakhir?.tanggal || '—'}</span>
-                  <span>Total Jurnal: {selectedSiswa.jumlah_jurnal ?? 0}</span>
-                </div>
-                <p className="text-xs text-gray-700 leading-relaxed font-medium">
+              <h4 className="font-bold text-gray-500 text-xs">Jurnal Terakhir</h4>
+              <div className="bg-gray-50 rounded-xl p-4">
+                <p className="text-xs text-gray-700 leading-relaxed">
                   &ldquo;{selectedSiswa.jurnal_terakhir?.uraian || 'Belum ada jurnal kegiatan harian terbaru.'}&rdquo;
                 </p>
               </div>
             </div>
 
-            <div className="flex justify-end pt-2">
+            {/* Footer */}
+            <div className="flex justify-end pt-1">
               <button
                 onClick={() => setSelectedSiswa(null)}
-                className="px-5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs transition-colors"
+                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-colors"
               >
-                Tutup
+                Tutup Detail
               </button>
             </div>
           </div>

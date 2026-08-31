@@ -1,0 +1,3009 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "SIMMAS API",
+        "description": "Sistem Informasi Manajemen Magang Siswa (SIMMAS). REST API dengan autentikasi Sanctum. Token didapat dari endpoint `POST /api/login`. Semua endpoint selain `login` dan `public/*` memerlukan header `Authorization: Bearer <token>`.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Server backend SIMMAS (Laravel)"
+        }
+    ],
+    "paths": {
+        "/api/admin/dashboard": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Statistik dashboard admin",
+                "description": "Ringkasan jumlah siswa, guru aktif, mitra DUDI, pengajuan menunggu, distribusi DUDI, dan chart status magang.",
+                "operationId": "f6e3ffeb3c9fb988ca2a77ad48e2c04c",
+                "responses": {
+                    "200": {
+                        "description": "Statistik dashboard.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "total_siswa": {
+                                                    "type": "integer"
+                                                },
+                                                "guru_aktif": {
+                                                    "type": "integer"
+                                                },
+                                                "mitra_dudi": {
+                                                    "type": "integer"
+                                                },
+                                                "pengajuan_menunggu": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid."
+                    },
+                    "403": {
+                        "description": "Role tidak diizinkan (bukan admin)."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/dudi": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Daftar mitra DUDI",
+                "description": "Daftar semua tempat magang beserta jumlah penempatan. Dapat difilter dengan pencarian.",
+                "operationId": "102bde94f765490663161fd6e3938881",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Cari berdasarkan nama perusahaan atau bidang usaha.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar DUDI.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TempatMagang"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Tambah mitra DUDI",
+                "operationId": "e561849298c1b743cd913d11661b4961",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nama_perusahaan",
+                                    "bidang_usaha",
+                                    "nama_pic",
+                                    "kontak_pic",
+                                    "kuota",
+                                    "alamat"
+                                ],
+                                "properties": {
+                                    "nama_perusahaan": {
+                                        "type": "string",
+                                        "example": "PT Teknologi Nusantara"
+                                    },
+                                    "bidang_usaha": {
+                                        "type": "string",
+                                        "example": "Teknologi Informasi"
+                                    },
+                                    "nama_pic": {
+                                        "type": "string",
+                                        "example": "Budi Santoso"
+                                    },
+                                    "kontak_pic": {
+                                        "type": "string",
+                                        "example": "0812-3456-7890"
+                                    },
+                                    "kuota": {
+                                        "type": "integer",
+                                        "example": 10,
+                                        "minimum": 1
+                                    },
+                                    "alamat": {
+                                        "type": "string",
+                                        "example": "Jl. Industri No. 10, Malang"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "DUDI berhasil ditambahkan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TempatMagang"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/dudi/{id}": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Perbarui data mitra DUDI",
+                "operationId": "15cac479a24b595a87fdb32ebdcdaaf9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nama_perusahaan",
+                                    "bidang_usaha",
+                                    "nama_pic",
+                                    "kontak_pic",
+                                    "kuota",
+                                    "alamat"
+                                ],
+                                "properties": {
+                                    "nama_perusahaan": {
+                                        "type": "string"
+                                    },
+                                    "bidang_usaha": {
+                                        "type": "string"
+                                    },
+                                    "nama_pic": {
+                                        "type": "string"
+                                    },
+                                    "kontak_pic": {
+                                        "type": "string"
+                                    },
+                                    "kuota": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "alamat": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "DUDI berhasil diperbarui.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TempatMagang"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Hapus mitra DUDI",
+                "description": "Penghapusan ditolak apabila masih ada siswa yang sedang aktif magang di DUDI tersebut.",
+                "operationId": "8a5ab3c0f73355c97bb48dcb97744836",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "DUDI berhasil dihapus."
+                    },
+                    "422": {
+                        "description": "Gagal: masih ada siswa aktif magang."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/dudi/{id}/verifikasi": {
+            "patch": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Toggle status verifikasi DUDI",
+                "operationId": "e59932bcf6cb8398e04869d61d17318d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status verifikasi berhasil diubah.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TempatMagang"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/guru": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Daftar guru",
+                "description": "Daftar semua guru beserta jumlah penempatan/siswa bimbingan.",
+                "operationId": "eaa66d2e2a775b0d87f52ce3ccbe4e2a",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Cari berdasarkan nama atau NIP.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar guru.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Guru"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Tambah guru",
+                "description": "Membuat akun guru baru beserta user & profile (role guru).",
+                "operationId": "27aca48dcc4d676ce64999853dc4c0d0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nip",
+                                    "nama_lengkap",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "nip": {
+                                        "type": "string",
+                                        "example": "199003202015012004",
+                                        "maxLength": 18,
+                                        "minLength": 18
+                                    },
+                                    "nama_lengkap": {
+                                        "type": "string",
+                                        "example": "Antigravity Andro"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "guru@simmas.sch.id"
+                                    },
+                                    "jurusan": {
+                                        "type": "string",
+                                        "example": "Rekayasa Perangkat Lunak",
+                                        "nullable": true
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password",
+                                        "minLength": 6
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Guru berhasil ditambahkan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Guru"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validasi gagal (NIP/email duplikat, format salah)."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/guru/{id}": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Perbarui data guru",
+                "operationId": "07347a2df63b55cf0a30b707c94751f1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nip",
+                                    "nama_lengkap"
+                                ],
+                                "properties": {
+                                    "nip": {
+                                        "type": "string",
+                                        "maxLength": 18,
+                                        "minLength": 18
+                                    },
+                                    "nama_lengkap": {
+                                        "type": "string"
+                                    },
+                                    "jurusan": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Guru berhasil diperbarui.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Guru"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Guru tidak ditemukan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Hapus guru",
+                "description": "Menghapus guru beserta akun user-nya. Ditolak jika masih membimbing siswa aktif.",
+                "operationId": "dcbbc382c6136121717fa3b603029761",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Guru berhasil dihapus."
+                    },
+                    "422": {
+                        "description": "Gagal: guru masih membimbing siswa aktif."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/guru/{id}/status": {
+            "patch": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Ubah status akun guru (aktif/nonaktif)",
+                "operationId": "db4d5d83f12f8c2aeb3866ce9f5ff541",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status akun berhasil diubah.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Guru"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/logs": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Daftar riwayat aktivitas (audit trail)",
+                "description": "Riwayat aktivitas seluruh pengguna, dipaginasi dan dapat difilter berdasarkan level atau kata kunci.",
+                "operationId": "5af9a33e1e22c910d993239c2aa929bf",
+                "parameters": [
+                    {
+                        "name": "level",
+                        "in": "query",
+                        "description": "Filter level log (info/warn/error).",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "info",
+                                "warn",
+                                "error"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Cari berdasarkan email aktor, action_type, IP, atau role.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Jumlah data per halaman (maks 100).",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar log.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ActivityLog"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/monitoring": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Monitoring siswa magang",
+                "description": "Daftar siswa (dapat difilter) beserta nama DUDI, pembimbing, rekap presensi, jumlah jurnal, status pantauan, dan jurnal terakhir.",
+                "operationId": "ad1945212d579ba2b950af1dc09fb300",
+                "parameters": [
+                    {
+                        "name": "kelas",
+                        "in": "query",
+                        "description": "Filter berdasarkan kelas.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Cari berdasarkan nama atau NIS.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Jumlah data per halaman.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar monitoring siswa.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Siswa"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid."
+                    },
+                    "403": {
+                        "description": "Role tidak diizinkan (bukan admin)."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/monitoring/{siswa_id}": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Detail monitoring satu siswa",
+                "description": "Detail lengkap siswa: penempatan, rekap presensi, jurnal terbaru, dan pengajuan.",
+                "operationId": "e419dd8d7999feba23a79f69fddd0091",
+                "parameters": [
+                    {
+                        "name": "siswa_id",
+                        "in": "path",
+                        "description": "ID siswa.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail monitoring siswa.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Siswa"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Siswa tidak ditemukan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/penempatan": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Daftar penempatan magang",
+                "description": "Semua penempatan beserta relasi siswa, tempat magang, dan guru pembimbing.",
+                "operationId": "581687b8140af21bd0fa2ffc9c3b5c93",
+                "responses": {
+                    "200": {
+                        "description": "Daftar penempatan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PenempatanMagang"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Buat penempatan magang",
+                "description": "Menempatkan siswa ke DUDI + guru pembimbing, sekaligus mengubah status siswa menjadi sedang_magang. Kuota DUDI harus tersedia.",
+                "operationId": "ea6cf6084a7a0d27e91e3c96d16a02ed",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "siswa_id",
+                                    "tempat_magang_id",
+                                    "guru_id",
+                                    "tanggal_mulai",
+                                    "tanggal_selesai"
+                                ],
+                                "properties": {
+                                    "siswa_id": {
+                                        "type": "integer"
+                                    },
+                                    "tempat_magang_id": {
+                                        "type": "integer"
+                                    },
+                                    "guru_id": {
+                                        "type": "integer"
+                                    },
+                                    "tanggal_mulai": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "tanggal_selesai": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Penempatan berhasil dibuat.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PenempatanMagang"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validasi gagal atau kuota DUDI habis."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/penempatan/{id}": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Perbarui penempatan magang",
+                "operationId": "08a61195cb2f72ae9544e1c9895bbd20",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "tempat_magang_id",
+                                    "guru_id",
+                                    "tanggal_mulai",
+                                    "tanggal_selesai"
+                                ],
+                                "properties": {
+                                    "tempat_magang_id": {
+                                        "type": "integer"
+                                    },
+                                    "guru_id": {
+                                        "type": "integer"
+                                    },
+                                    "tanggal_mulai": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "tanggal_selesai": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Penempatan berhasil diperbarui.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PenempatanMagang"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/penempatan/{id}/sahkan": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Sahkan penempatan magang",
+                "description": "Mengesahkan penempatan dan menandai siswa sebagai sedang_magang.",
+                "operationId": "1dd91f184e3c52e6c0b1f8d0c1864107",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Penempatan disahkan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PenempatanMagang"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/penempatan/{id}/batalkan": {
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Batalkan penempatan magang",
+                "description": "Menghapus penempatan dan mengembalikan status siswa menjadi belum_magang.",
+                "operationId": "c61c174e7a9735f94437df8f9f536758",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Penempatan dibatalkan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/settings": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Lihat pengaturan sistem",
+                "description": "Mengembalikan identitas aplikasi, konten halaman depan, dan profil sekolah.",
+                "operationId": "b8df30762e1031b1797e3181636b893d",
+                "responses": {
+                    "200": {
+                        "description": "Pengaturan sistem."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Simpan pengaturan sistem",
+                "description": "Menyimpan perubahan identitas aplikasi, halaman depan, dan data sekolah. Tercatat di activity log.",
+                "operationId": "1aa85c87d56da8647682bd8feab7f1b8",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "identitas": {
+                                        "type": "object"
+                                    },
+                                    "halaman_depan": {
+                                        "type": "object"
+                                    },
+                                    "sekolah": {
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pengaturan berhasil disimpan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/siswa": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Daftar siswa",
+                "description": "Daftar semua siswa beserta relasi user, penempatan, DUDI, dan pembimbing.",
+                "operationId": "93fbd3974f159677f753f4b82d1a5df5",
+                "parameters": [
+                    {
+                        "name": "kelas",
+                        "in": "query",
+                        "description": "Filter kelas.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status_magang",
+                        "in": "query",
+                        "description": "Filter status magang.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "belum_magang",
+                                "pengajuan",
+                                "sedang_magang",
+                                "lulus"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Cari berdasarkan nama atau NIS.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar siswa.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Siswa"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Tambah siswa",
+                "description": "Membuat akun siswa baru beserta user & profile (role siswa).",
+                "operationId": "59e57c970692ac87197a318e3a891fe4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nis",
+                                    "nama_lengkap",
+                                    "kelas",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "nis": {
+                                        "type": "string",
+                                        "pattern": "^\\d{10}$",
+                                        "example": "2024001"
+                                    },
+                                    "nama_lengkap": {
+                                        "type": "string",
+                                        "example": "Skultori Andro"
+                                    },
+                                    "kelas": {
+                                        "type": "string",
+                                        "example": "XI"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "siswa@simmas.sch.id"
+                                    },
+                                    "email_kontak": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "nullable": true
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "minLength": 6
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Siswa berhasil ditambahkan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Siswa"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validasi gagal (NIS/email duplikat)."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/siswa/{id}": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Perbarui data siswa",
+                "operationId": "d05bd9158d30e0e2bc9f9e796c22a883",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nis",
+                                    "nama_lengkap",
+                                    "kelas"
+                                ],
+                                "properties": {
+                                    "nis": {
+                                        "type": "string"
+                                    },
+                                    "nama_lengkap": {
+                                        "type": "string"
+                                    },
+                                    "kelas": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "email_kontak": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "nullable": true
+                                    },
+                                    "status_magang": {
+                                        "type": "string",
+                                        "enum": [
+                                            "belum_magang",
+                                            "pengajuan",
+                                            "sedang_magang",
+                                            "lulus"
+                                        ]
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Siswa berhasil diperbarui.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Siswa"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Hapus siswa",
+                "description": "Menghapus siswa beserta akun user-nya.",
+                "operationId": "0cf5d80cfbdbc2df86d6c97c5a5b4dc8",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Siswa berhasil dihapus."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/siswa/{id}/plotting": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Plotting (penempatan) siswa",
+                "description": "Menempatkan siswa ke DUDI dengan pembimbing guru dan periode magang.",
+                "operationId": "6e25f33fd5b7b738c830e7b2bc6a8c02",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "tempat_magang_id",
+                                    "guru_id"
+                                ],
+                                "properties": {
+                                    "tempat_magang_id": {
+                                        "type": "integer"
+                                    },
+                                    "guru_id": {
+                                        "type": "integer"
+                                    },
+                                    "tanggal_mulai": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "tanggal_selesai": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Siswa berhasil diplotting.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PenempatanMagang"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validasi gagal (kuota penuh, siswa sudah ditempatkan)."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Autentikasi"
+                ],
+                "summary": "Login pengguna",
+                "description": "Mengembalikan token Sanctum dan data pengguna. Token dipakai pada header `Authorization: Bearer <token>` untuk endpoint lain.",
+                "operationId": "ea134134deae11eb974c719450ef8a02",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login berhasil.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoginResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Email atau password salah."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                }
+            }
+        },
+        "/api/me": {
+            "get": {
+                "tags": [
+                    "Autentikasi"
+                ],
+                "summary": "Data pengguna saat ini",
+                "description": "Mengembalikan profil pengguna yang sedang login beserta relasi guru/siswa & penempatan.",
+                "operationId": "a1d267b629b92178b83f0419482a139d",
+                "responses": {
+                    "200": {
+                        "description": "Profil pengguna.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid / tidak terautentikasi."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Autentikasi"
+                ],
+                "summary": "Logout (revoke token)",
+                "description": "Membatalkan token Sanctum yang sedang dipakai.",
+                "operationId": "5ebea01ab5f21df71d38f3505718a1d7",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil logout."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/dudi": {
+            "get": {
+                "tags": [
+                    "Public"
+                ],
+                "summary": "Daftar DUDI untuk form pengajuan/kunjungan",
+                "description": "Menampilkan mitra DUDI terverifikasi yang masih memiliki kuota (penempatan_count < kuota). Dapat diakses oleh semua role terautentikasi (admin, guru, siswa).",
+                "operationId": "f7b3bebb77aebc3d73995431030b0cbd",
+                "responses": {
+                    "200": {
+                        "description": "Daftar DUDI tersedia.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TempatMagang"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token tidak valid."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/guru/absensi": {
+            "get": {
+                "tags": [
+                    "Guru"
+                ],
+                "summary": "Daftar absensi siswa bimbingan",
+                "description": "Riwayat absensi siswa bimbingan guru, bisa difilter berdasarkan status validasi.",
+                "operationId": "b651960d8c61bb7b431d7172209d5da4",
+                "parameters": [
+                    {
+                        "name": "status_validasi",
+                        "in": "query",
+                        "description": "Filter status validasi guru.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "menunggu",
+                                "disetujui",
+                                "ditolak"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar absensi.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Absensi"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/guru/absensi/{id}/validasi": {
+            "patch": {
+                "tags": [
+                    "Guru"
+                ],
+                "summary": "Validasi absensi siswa",
+                "description": "Menyetujui atau menolak absensi siswa, dengan catatan opsional.",
+                "operationId": "a19e57cf8a3bf21c22c31f41600cd9ef",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID absensi.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status_validasi_guru"
+                                ],
+                                "properties": {
+                                    "status_validasi_guru": {
+                                        "type": "string",
+                                        "enum": [
+                                            "disetujui",
+                                            "ditolak"
+                                        ]
+                                    },
+                                    "catatan_guru": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status validasi berhasil diubah.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Absensi"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Absensi tidak ditemukan."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/guru/dashboard": {
+            "get": {
+                "tags": [
+                    "Guru"
+                ],
+                "summary": "Statistik dashboard guru",
+                "description": "Ringkasan nilai/absensi/jurnal untuk siswa bimbingan guru yang sedang login.",
+                "operationId": "4727e162400f2717a2d2b286825fd823",
+                "responses": {
+                    "200": {
+                        "description": "Statistik dashboard guru."
+                    },
+                    "404": {
+                        "description": "Profil guru tidak ditemukan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/guru/jurnal": {
+            "get": {
+                "tags": [
+                    "Guru"
+                ],
+                "summary": "Daftar jurnal siswa bimbingan",
+                "description": "Jurnal harian siswa bimbingan guru, bisa difilter berdasarkan status verifikasi.",
+                "operationId": "088b2ca17302b761eaa047a3a6657368",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter status verifikasi.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "menunggu",
+                                "disetujui",
+                                "perlu_revisi"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar jurnal.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/JurnalHarian"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/guru/jurnal/{id}/validasi": {
+            "patch": {
+                "tags": [
+                    "Guru"
+                ],
+                "summary": "Validasi jurnal siswa",
+                "description": "Menyetujui atau meminta revisi jurnal siswa, dengan catatan opsional.",
+                "operationId": "73acdf83089b1a4823f750f40d2ed4a6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID jurnal.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status_verifikasi"
+                                ],
+                                "properties": {
+                                    "status_verifikasi": {
+                                        "type": "string",
+                                        "enum": [
+                                            "disetujui",
+                                            "perlu_revisi"
+                                        ]
+                                    },
+                                    "catatan_guru": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status verifikasi berhasil diubah.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JurnalHarian"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Jurnal tidak ditemukan."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/guru/kunjungan": {
+            "get": {
+                "tags": [
+                    "Guru"
+                ],
+                "summary": "Daftar kunjungan lapangan",
+                "description": "Catatan kunjungan lapangan milik guru yang sedang login.",
+                "operationId": "cc15319d2063d302c7963605e8629336",
+                "responses": {
+                    "200": {
+                        "description": "Daftar kunjungan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Kunjungan"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Guru"
+                ],
+                "summary": "Tambah kunjungan lapangan",
+                "description": "Membuat catatan kunjungan. `foto_dokumentasi` dikirim sebagai multipart/form-data (opsional).",
+                "operationId": "d2662cdbcb1d7adfb623ce24e86f3df8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "tempat_magang_id",
+                                    "tanggal_kunjungan"
+                                ],
+                                "properties": {
+                                    "tempat_magang_id": {
+                                        "type": "integer"
+                                    },
+                                    "tanggal_kunjungan": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "catatan_evaluasi": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "foto_dokumentasi": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Kunjungan berhasil ditambahkan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Kunjungan"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/guru/kunjungan/{id}": {
+            "put": {
+                "tags": [
+                    "Guru"
+                ],
+                "summary": "Perbarui kunjungan lapangan",
+                "operationId": "25460640e02ce8ee26653eecdb454051",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "tempat_magang_id",
+                                    "tanggal_kunjungan"
+                                ],
+                                "properties": {
+                                    "tempat_magang_id": {
+                                        "type": "integer"
+                                    },
+                                    "tanggal_kunjungan": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "catatan_evaluasi": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "foto_dokumentasi": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Kunjungan berhasil diperbarui.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Kunjungan"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Kunjungan tidak ditemukan."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Guru"
+                ],
+                "summary": "Hapus kunjungan lapangan",
+                "operationId": "8942c990015f48c0892b240ac5ac971f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Kunjungan berhasil dihapus."
+                    },
+                    "404": {
+                        "description": "Kunjungan tidak ditemukan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/guru/siswa": {
+            "get": {
+                "tags": [
+                    "Guru"
+                ],
+                "summary": "Daftar siswa bimbingan",
+                "description": "Daftar penempatan siswa bimbingan guru, lengkap dengan relasi absensi, jurnal, dan DUDI tempat magang.",
+                "operationId": "3ccc8c9c2d6659ffcafdbacc820e7ccf",
+                "responses": {
+                    "200": {
+                        "description": "Daftar bimbingan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PenempatanMagang"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Profil guru tidak ditemukan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/guru/siswa/{id}/input-nilai": {
+            "post": {
+                "tags": [
+                    "Guru"
+                ],
+                "summary": "Input nilai akhir & sahkan kelulusan siswa",
+                "description": "Menyimpan nilai akhir (0-100), menandai penempatan lulus_magang, dan mengubah status siswa menjadi lulus.",
+                "operationId": "25f07ccd99d3a9fb09616b9a2a8dd36a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID siswa.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nilai_akhir"
+                                ],
+                                "properties": {
+                                    "nilai_akhir": {
+                                        "type": "integer",
+                                        "example": 90,
+                                        "maximum": 100,
+                                        "minimum": 0
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Nilai berhasil disimpan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PenempatanMagang"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Siswa tidak berada dalam bimbingan guru."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/public/landing-stats": {
+            "get": {
+                "tags": [
+                    "Public"
+                ],
+                "summary": "Statistik publik halaman landing",
+                "description": "Menampilkan jumlah jurnal disetujui, presensi tercatat, siswa aktif, dan total DUDI terverifikasi (tanpa autentikasi).",
+                "operationId": "497925c7c80cfb4c8e93ff3a1873c9d3",
+                "responses": {
+                    "200": {
+                        "description": "Statistik berhasil dimuat.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "jurnal_disetujui": {
+                                                    "type": "integer"
+                                                },
+                                                "presensi_tercatat": {
+                                                    "type": "integer"
+                                                },
+                                                "siswa_aktif": {
+                                                    "type": "integer"
+                                                },
+                                                "total_dudi": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/siswa/absensi": {
+            "get": {
+                "tags": [
+                    "Siswa"
+                ],
+                "summary": "Riwayat absensi siswa",
+                "description": "Riwayat presensi milik siswa yang sedang login, urut tanggal terbaru.",
+                "operationId": "fe88cbf5ee721f59fe1c6ed33fbd5102",
+                "responses": {
+                    "200": {
+                        "description": "Riwayat absensi.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Absensi"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Siswa"
+                ],
+                "summary": "Catat presensi / izin",
+                "description": "Absen masuk/pulang atau izin/sakit hari ini. `foto` dikirim sebagai multipart/form-data (opsional). Satu baris absensi per hari per siswa (di-update bila sudah ada).",
+                "operationId": "ca8740da926262a463b66fb6f46fc72b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "type"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "masuk",
+                                            "pulang",
+                                            "izin_sakit"
+                                        ]
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "enum": [
+                                            "hadir",
+                                            "sakit",
+                                            "izin"
+                                        ]
+                                    },
+                                    "catatan": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "foto": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Presensi berhasil dicatat.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Absensi"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/siswa/dashboard": {
+            "get": {
+                "tags": [
+                    "Siswa"
+                ],
+                "summary": "Statistik dashboard siswa",
+                "description": "Ringkasan status magang, penempatan, pengajuan terakhir, absensi hari ini, serta rekap presensi & jurnal siswa yang sedang login.",
+                "operationId": "f27d01db57c51a8fd5069605be206c49",
+                "responses": {
+                    "200": {
+                        "description": "Statistik dashboard siswa."
+                    },
+                    "404": {
+                        "description": "Profil siswa tidak ditemukan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/siswa/jurnal": {
+            "get": {
+                "tags": [
+                    "Siswa"
+                ],
+                "summary": "Daftar jurnal harian siswa",
+                "description": "Riwayat jurnal harian milik siswa yang sedang login, urut tanggal terbaru.",
+                "operationId": "05e51146256e9255cd6fc300606acd50",
+                "responses": {
+                    "200": {
+                        "description": "Daftar jurnal.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/JurnalHarian"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Siswa"
+                ],
+                "summary": "Buat jurnal harian",
+                "description": "Menyimpan jurnal harian baru. `foto_bukti` dikirim sebagai multipart/form-data (opsional). Status awal menunggu verifikasi guru.",
+                "operationId": "9244cc0a4028bcb5c59d03938566e27e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "tanggal",
+                                    "uraian_kegiatan"
+                                ],
+                                "properties": {
+                                    "tanggal": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-08-30"
+                                    },
+                                    "uraian_kegiatan": {
+                                        "type": "string",
+                                        "minLength": 15
+                                    },
+                                    "kendala": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "solusi": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "foto_bukti": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Jurnal berhasil disimpan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JurnalHarian"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/siswa/jurnal/{id}": {
+            "put": {
+                "tags": [
+                    "Siswa"
+                ],
+                "summary": "Perbarui jurnal harian",
+                "description": "Mengubah jurnal milik siswa sendiri. Ditolak bila jurnal sudah disetujui guru.",
+                "operationId": "0d7f4901c3fa5f1a23da0e29d774cafd",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "tanggal",
+                                    "uraian_kegiatan"
+                                ],
+                                "properties": {
+                                    "tanggal": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "uraian_kegiatan": {
+                                        "type": "string",
+                                        "minLength": 15
+                                    },
+                                    "kendala": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "solusi": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "foto_bukti": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Jurnal berhasil diperbarui.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JurnalHarian"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Jurnal tidak ditemukan."
+                    },
+                    "422": {
+                        "description": "Jurnal sudah disetujui / validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Siswa"
+                ],
+                "summary": "Hapus jurnal harian",
+                "description": "Menghapus jurnal milik siswa sendiri. Ditolak bila jurnal sudah disetujui guru.",
+                "operationId": "7aa1c6b140bca885b9db4d4615efa451",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Jurnal berhasil dihapus."
+                    },
+                    "422": {
+                        "description": "Jurnal sudah disetujui tidak bisa dihapus."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/siswa/pengajuan": {
+            "get": {
+                "tags": [
+                    "Siswa"
+                ],
+                "summary": "Daftar pengajuan magang siswa",
+                "description": "Riwayat pengajuan magang milik siswa yang sedang login.",
+                "operationId": "6162e48c08275a1138c8e6292a1cecc0",
+                "responses": {
+                    "200": {
+                        "description": "Daftar pengajuan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PengajuanMagang"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Siswa"
+                ],
+                "summary": "Buat pengajuan magang",
+                "description": "Mengirim pengajuan magang ke DUDI. Kuota DUDI harus tersedia. Status siswa otomatis menjadi pengajuan.",
+                "operationId": "0dc1de09f1c11d8a262efeff4014d944",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "tempat_magang_id",
+                                    "posisi_diminati",
+                                    "tanggal_mulai_usulan",
+                                    "tanggal_selesai_usulan"
+                                ],
+                                "properties": {
+                                    "tempat_magang_id": {
+                                        "type": "integer"
+                                    },
+                                    "posisi_diminati": {
+                                        "type": "string",
+                                        "example": "Programmer"
+                                    },
+                                    "tanggal_mulai_usulan": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "tanggal_selesai_usulan": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Pengajuan berhasil dikirim.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PengajuanMagang"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validasi gagal atau kuota DUDI habis."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "LoginRequest": {
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "properties": {
+                    "email": {
+                        "description": "Metadata & component definitions OpenAPI untuk SIMMAS.\nAnotasi pada kelas ini dibaca otomatis oleh L5-Swagger.\nKelas dibuat autoloadable (PSR-4: App\\OpenApi\\Metadata -> app/OpenApi/Metadata.php).",
+                        "type": "string",
+                        "format": "email",
+                        "example": "siswa@simmas.sch.id"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "password"
+                    }
+                },
+                "type": "object"
+            },
+            "LoginResponse": {
+                "description": "Payload berhasil login.",
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "example": "1|xxxxxxxxxxxxxxxxxxxx"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "role": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "admin",
+                            "guru",
+                            "siswa"
+                        ]
+                    },
+                    "profile": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Profile"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "guru": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Guru"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "siswa": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Siswa"
+                            }
+                        ],
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ApiResponse": {
+                "description": "Pembungkus standar respon JSON.",
+                "properties": {
+                    "status": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Berhasil."
+                    },
+                    "data": {
+                        "description": "Payload utama (isi bervariasi per endpoint)."
+                    }
+                },
+                "type": "object"
+            },
+            "Profile": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "user_id": {
+                        "type": "integer"
+                    },
+                    "nama": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "admin",
+                            "guru",
+                            "siswa"
+                        ]
+                    },
+                    "avatar": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Guru": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "nip": {
+                        "type": "string"
+                    },
+                    "nama_lengkap": {
+                        "type": "string"
+                    },
+                    "jurusan": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status_akun": {
+                        "type": "string",
+                        "enum": [
+                            "aktif",
+                            "nonaktif"
+                        ]
+                    },
+                    "penempatan_count": {
+                        "type": "integer",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Siswa": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "nis": {
+                        "type": "string"
+                    },
+                    "nama_lengkap": {
+                        "type": "string"
+                    },
+                    "kelas": {
+                        "type": "string"
+                    },
+                    "email_kontak": {
+                        "type": "string",
+                        "format": "email",
+                        "nullable": true
+                    },
+                    "status_magang": {
+                        "type": "string",
+                        "enum": [
+                            "belum_magang",
+                            "pengajuan",
+                            "sedang_magang",
+                            "lulus"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "TempatMagang": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "nama_perusahaan": {
+                        "type": "string"
+                    },
+                    "bidang_usaha": {
+                        "type": "string"
+                    },
+                    "nama_pic": {
+                        "type": "string"
+                    },
+                    "kontak_pic": {
+                        "type": "string"
+                    },
+                    "kuota": {
+                        "type": "integer"
+                    },
+                    "sisa_kuota": {
+                        "type": "integer"
+                    },
+                    "alamat": {
+                        "type": "string"
+                    },
+                    "status_verifikasi": {
+                        "type": "string",
+                        "enum": [
+                            "terverifikasi",
+                            "belum_diverifikasi"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "PenempatanMagang": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "siswa_id": {
+                        "type": "integer"
+                    },
+                    "tempat_magang_id": {
+                        "type": "integer"
+                    },
+                    "guru_id": {
+                        "type": "integer"
+                    },
+                    "tanggal_mulai": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "tanggal_selesai": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "nilai_akhir": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "status_pengesahan": {
+                        "type": "string",
+                        "enum": [
+                            "belum_disahkan",
+                            "disahkan",
+                            "lulus_magang"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "PengajuanMagang": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "siswa_id": {
+                        "type": "integer"
+                    },
+                    "tempat_magang_id": {
+                        "type": "integer"
+                    },
+                    "posisi_diminati": {
+                        "type": "string"
+                    },
+                    "tanggal_mulai_usulan": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "tanggal_selesai_usulan": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "menunggu",
+                            "disetujui",
+                            "ditolak"
+                        ]
+                    },
+                    "catatan_penolakan": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Absensi": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "siswa_id": {
+                        "type": "integer"
+                    },
+                    "tanggal": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-08-30"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "hadir",
+                            "sakit",
+                            "izin",
+                            "alfa"
+                        ]
+                    },
+                    "jam_masuk": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "jam_pulang": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "foto_masuk": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "foto_pulang": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status_validasi_guru": {
+                        "type": "string",
+                        "enum": [
+                            "menunggu",
+                            "disetujui",
+                            "ditolak"
+                        ]
+                    },
+                    "catatan_guru": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "JurnalHarian": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "siswa_id": {
+                        "type": "integer"
+                    },
+                    "tanggal": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-08-30"
+                    },
+                    "uraian_kegiatan": {
+                        "type": "string"
+                    },
+                    "kendala": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "solusi": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "foto_bukti": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status_verifikasi": {
+                        "type": "string",
+                        "enum": [
+                            "menunggu",
+                            "disetujui",
+                            "perlu_revisi"
+                        ]
+                    },
+                    "catatan_guru": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Kunjungan": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "guru_id": {
+                        "type": "integer"
+                    },
+                    "tempat_magang_id": {
+                        "type": "integer"
+                    },
+                    "tanggal_kunjungan": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "catatan_evaluasi": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "foto_dokumentasi": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ActivityLog": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "actor_email": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "actor_role": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "action_type": {
+                        "type": "string"
+                    },
+                    "level": {
+                        "type": "string",
+                        "enum": [
+                            "info",
+                            "warn",
+                            "error"
+                        ]
+                    },
+                    "ip_address": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "apiKey",
+                "description": "Masukkan token dengan format: Bearer <token> (didapat dari endpoint POST /api/login).",
+                "name": "Authorization",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Autentikasi",
+            "description": "Login, logout, dan profil pengguna saat ini."
+        },
+        {
+            "name": "Public",
+            "description": "Endpoint publik tanpa autentikasi."
+        },
+        {
+            "name": "Admin",
+            "description": "Manajemen data oleh Admin."
+        },
+        {
+            "name": "Guru",
+            "description": "Fitur untuk role Guru Pembimbing."
+        },
+        {
+            "name": "Siswa",
+            "description": "Fitur untuk role Siswa Magang."
+        }
+    ]
+}

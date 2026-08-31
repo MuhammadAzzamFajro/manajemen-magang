@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getJurnalForGuru, validasiJurnal, validasiAbsensi } from '@/lib/db';
 import { getAuthUser } from '@/lib/auth';
+import { toast } from '@/lib/toast';
 import {
   CheckCircle2,
   XCircle,
@@ -143,17 +144,21 @@ export default function GuruJurnalPage() {
       queryClient.invalidateQueries({ queryKey: ['guru-dashboard'] });
       setSelectedJurnal(null);
       setCatatanGuru('');
+      toast.success(statusJurnal === 'disetujui' ? 'Jurnal berhasil disetujui.' : `Jurnal diperbarui: ${statusJurnal}.`);
     },
+    onError: (err: any) => toast.error(err?.response?.data?.message || err.message || 'Gagal memvalidasi jurnal.'),
   });
 
   const validasiAbsensiMutation = useMutation({
     mutationFn: (status: string) => validasiAbsensi(selectedAbsensi.id, status, catatanAbsensi),
-    onSuccess: () => {
+    onSuccess: (_: any, status: string) => {
       queryClient.invalidateQueries({ queryKey: ['guru-jurnal'] });
       queryClient.invalidateQueries({ queryKey: ['guru-dashboard'] });
       setSelectedAbsensi(null);
       setCatatanAbsensi('');
+      toast.success(status === 'disetujui' ? 'Absensi berhasil disetujui.' : 'Absensi berhasil ditolak.');
     },
+    onError: (err: any) => toast.error(err?.response?.data?.message || err.message || 'Gagal memvalidasi absensi.'),
   });
 
   const { jurnal = [], absensi = [] } = data || {};

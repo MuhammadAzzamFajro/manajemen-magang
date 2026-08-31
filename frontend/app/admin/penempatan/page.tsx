@@ -13,6 +13,7 @@ import {
   ShieldX, CheckCircle, RotateCw, Link, Calendar, Briefcase, UserCheck, XCircle,
 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
+import { toast } from '@/lib/toast';
 
 // ─── Avatar & Formatting Helpers ──────────────────────────────────────────────
 const getInitials = (name: string) => {
@@ -175,13 +176,13 @@ export default function AdminPenempatanPage() {
       list = list.filter(p =>
         p.siswa?.nama_lengkap?.toLowerCase().includes(q) ||
         p.siswa?.nis?.includes(q) ||
-        p.siswa?.kelas?.toLowerCase().includes(q) ||
+        p.siswa?.kelas?.nama?.toLowerCase().includes(q) ||
         p.tempat_magang?.nama_perusahaan?.toLowerCase().includes(q) ||
         p.tempatMagang?.nama_perusahaan?.toLowerCase().includes(q) ||
         p.guru?.nama_lengkap?.toLowerCase().includes(q)
       );
     }
-    if (filterKelas) list = list.filter(p => p.siswa?.kelas === filterKelas);
+    if (filterKelas) list = list.filter(p => p.siswa?.kelas?.nama === filterKelas);
     if (filterDudi) {
       list = list.filter(p => {
         const dudiName = p.tempat_magang?.nama_perusahaan || p.tempatMagang?.nama_perusahaan || '';
@@ -204,7 +205,7 @@ export default function AdminPenempatanPage() {
 
   // Dropdown options
   const kelasList = useMemo(() => {
-    const set = new Set((siswas as any[]).map(s => s.kelas).filter(Boolean));
+    const set = new Set((siswas as any[]).map(s => s.kelas?.nama).filter(Boolean));
     return [...set].sort();
   }, [siswas]);
 
@@ -275,8 +276,9 @@ export default function AdminPenempatanPage() {
       queryClient.invalidateQueries({ queryKey: ['admin-dudi'] });
       setIsModalOpen(false);
       resetForm();
+      toast.success(editingPenempatan ? 'Penempatan berhasil diperbarui.' : 'Penempatan baru berhasil disimpan.');
     },
-    onError: (e: any) => setErrorMsg(e.message || 'Gagal menyimpan penempatan.'),
+    onError: (e: any) => { setErrorMsg(e.message || 'Gagal menyimpan penempatan.'); toast.error(e.message || 'Gagal menyimpan penempatan.'); },
   });
 
   const cancelMutation = useMutation({
@@ -288,8 +290,9 @@ export default function AdminPenempatanPage() {
       queryClient.invalidateQueries({ queryKey: ['admin-siswa'] });
       queryClient.invalidateQueries({ queryKey: ['admin-dudi'] });
       setCancelTarget(null);
+      toast.success('Penempatan berhasil dibatalkan.');
     },
-    onError: (e: any) => setErrorMsg(e.message || 'Gagal membatalkan penempatan.'),
+    onError: (e: any) => toast.error(e.message || 'Gagal membatalkan penempatan.'),
   });
 
   return (
@@ -491,7 +494,7 @@ export default function AdminPenempatanPage() {
                 paginated.map((p: any) => {
                   const siswaName = p.siswa?.nama_lengkap || '—';
                   const siswaNis = p.siswa?.nis || '—';
-                  const siswaKelas = p.siswa?.kelas || '—';
+                  const siswaKelas = p.siswa?.kelas?.nama || '—';
                   const bg = getAvatarBg(siswaName);
                   const initials = getInitials(siswaName);
                   const dudiName = p.tempat_magang?.nama_perusahaan || p.tempatMagang?.nama_perusahaan || '—';
@@ -651,7 +654,7 @@ export default function AdminPenempatanPage() {
                   <input
                     type="text"
                     readOnly
-                    value={`${editingPenempatan.siswa?.nama_lengkap || ''} (${editingPenempatan.siswa?.kelas || ''})`}
+                    value={`${editingPenempatan.siswa?.nama_lengkap || ''} (${editingPenempatan.siswa?.kelas?.nama || ''})`}
                     className="w-full px-3.5 py-2.5 text-xs font-semibold bg-gray-50 border border-gray-200 rounded-xl text-gray-700 cursor-not-allowed"
                   />
                 ) : (
@@ -665,7 +668,7 @@ export default function AdminPenempatanPage() {
                       <option value="">— Pilih Siswa (Perlu Penempatan) —</option>
                       {unassignedSiswas.map((s: any) => (
                         <option key={s.id} value={s.id}>
-                          {s.nama_lengkap} — NIS: {s.nis} ({s.kelas})
+                          {s.nama_lengkap} — NIS: {s.nis} ({s.kelas?.nama})
                         </option>
                       ))}
                     </select>
@@ -717,7 +720,7 @@ export default function AdminPenempatanPage() {
                     <option value="">— Pilih Guru Pembimbing —</option>
                     {gurus.map((g: any) => (
                       <option key={g.id} value={g.id}>
-                        {g.nama_lengkap} ({g.jurusan || 'Guru'})
+                        {g.nama_lengkap} ({typeof g.jurusan === 'object' ? g.jurusan?.nama : (g.jurusan || 'Guru')})
                       </option>
                     ))}
                   </select>

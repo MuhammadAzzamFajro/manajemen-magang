@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getJurnalSiswa, createJurnal, updateJurnal, deleteJurnal } from '@/lib/db';
 import { getAuthUser } from '@/lib/auth';
+import { toast } from '@/lib/toast';
 import {
   Plus,
   BookOpen,
@@ -209,8 +210,9 @@ export default function SiswaJurnalPage() {
       queryClient.invalidateQueries({ queryKey: ['siswa-jurnal'] });
       queryClient.invalidateQueries({ queryKey: ['siswa-dashboard'] });
       resetForm();
+      toast.success('Jurnal baru berhasil disimpan.');
     },
-    onError: (err: any) => setErrorMsg(err?.response?.data?.message || err.message || 'Gagal menyimpan jurnal.'),
+    onError: (err: any) => { const m = err?.response?.data?.message || err.message || 'Gagal menyimpan jurnal.'; setErrorMsg(m); toast.error(m); },
   });
 
   const updateMutation = useMutation({
@@ -226,8 +228,9 @@ export default function SiswaJurnalPage() {
       queryClient.invalidateQueries({ queryKey: ['siswa-jurnal'] });
       queryClient.invalidateQueries({ queryKey: ['siswa-dashboard'] });
       resetForm();
+      toast.success('Jurnal berhasil diperbarui.');
     },
-    onError: (err: any) => setErrorMsg(err?.response?.data?.message || err.message || 'Gagal memperbarui jurnal.'),
+    onError: (err: any) => { const m = err?.response?.data?.message || err.message || 'Gagal memperbarui jurnal.'; setErrorMsg(m); toast.error(m); },
   });
 
   const deleteMutation = useMutation({
@@ -236,8 +239,9 @@ export default function SiswaJurnalPage() {
       queryClient.invalidateQueries({ queryKey: ['siswa-jurnal'] });
       queryClient.invalidateQueries({ queryKey: ['siswa-dashboard'] });
       setDeleteItem(null);
+      toast.success('Jurnal berhasil dihapus.');
     },
-    onError: (err: any) => alert(err?.response?.data?.message || err.message || 'Gagal menghapus jurnal.'),
+    onError: (err: any) => toast.error(err?.response?.data?.message || err.message || 'Gagal menghapus jurnal.'),
   });
 
   const resetForm = () => {

@@ -9,6 +9,7 @@ class Absensi extends Model
     protected $table    = 'absensi';
     protected $fillable = ['siswa_id', 'tanggal', 'status', 'jam_masuk', 'jam_pulang', 'foto_masuk', 'foto_pulang', 'status_validasi_guru', 'catatan_guru'];
     protected $casts    = ['tanggal' => 'date:Y-m-d'];
+    protected $appends  = ['foto_masuk_url', 'foto_pulang_url'];
 
     public function siswa() { return $this->belongsTo(Siswa::class); }
 

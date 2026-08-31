@@ -4,6 +4,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getGurus, createGuru, updateGuru, deleteGuru, toggleGuruStatus,
+  getJurusans,
 } from '@/lib/db';
 import {
   Plus, Search, ChevronDown, MoreHorizontal, Edit2, Trash2,
@@ -11,19 +12,7 @@ import {
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
   ShieldX, RotateCw, Key, Copy, Check, Ban,
 } from 'lucide-react';
-
-// ─── JURUSAN OPTIONS ────────────────────────────────────────────────────────────
-const JURUSAN_OPTIONS = [
-  'Rekayasa Perangkat Lunak',
-  'Teknik Komputer & Jaringan',
-  'Desain Komunikasi Visual',
-  'Teknik Kelistrikan',
-  'Teknik Otomotif',
-  'Teknik Elektro',
-  'Mekatronika',
-  'Broadcasting dan Perfilman',
-  'Busana',
-];
+import { toast } from '@/lib/toast';
 
 // ─── Avatar helpers ────────────────────────────────────────────────────────────
 const getInitials = (name: string) => {
@@ -342,7 +331,7 @@ export default function AdminGuruPage() {
   // Form states
   const [nip, setNip] = useState('');
   const [namaLengkap, setNamaLengkap] = useState('');
-  const [jurusan, setJurusan] = useState('');
+  const [jurusanId, setJurusanId] = useState<number | string>('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -350,6 +339,12 @@ export default function AdminGuruPage() {
   const { data: rawGurus = [], isLoading, error: fetchError } = useQuery({
     queryKey: ['admin-guru'],
     queryFn: () => getGurus(),
+    staleTime: 30_000,
+  });
+
+  const { data: jurusanData = [] } = useQuery({
+    queryKey: ['admin-jurusan'],
+    queryFn: () => getJurusans(),
     staleTime: 30_000,
   });
 
@@ -361,11 +356,11 @@ export default function AdminGuruPage() {
       list = list.filter(g =>
         g.nama_lengkap?.toLowerCase().includes(q) ||
         g.nip?.includes(q) ||
-        g.jurusan?.toLowerCase().includes(q) ||
+        g.jurusan?.nama?.toLowerCase().includes(q) ||
         g.user?.email?.toLowerCase().includes(q)
       );
     }
-    if (filterJurusan) list = list.filter(g => g.jurusan === filterJurusan);
+    if (filterJurusan) list = list.filter(g => g.jurusan?.nama === filterJurusan);
     if (filterStatus) list = list.filter(g => g.status_akun === filterStatus);
     return list;
   }, [rawGurus, search, filterJurusan, filterStatus]);
@@ -383,15 +378,16 @@ export default function AdminGuruPage() {
 
   // ─── Jurusan (untuk filter & rekap) ──────────────────────────────────────
   const jurusanList = useMemo(() => {
-    const set = new Set<string>([...JURUSAN_OPTIONS]);
-    all.forEach(g => { if (g.jurusan) set.add(g.jurusan); });
+    const set = new Set<string>();
+    (jurusanData as any[]).forEach(j => { if (j.nama) set.add(j.nama); });
+    all.forEach(g => { if (g.jurusan?.nama) set.add(g.jurusan.nama); });
     return [...set].sort();
-  }, [all]);
+  }, [all, jurusanData]);
 
   const rekapJurusan = useMemo(() => {
     const map = new Map<string, { jumlah: number; aktif: number }>();
     all.forEach(g => {
-      const j = g.jurusan || 'Tanpa Jurusan';
+      const j = g.jurusan?.nama || 'Tanpa Jurusan';
       const cur = map.get(j) || { jumlah: 0, aktif: 0 };
       cur.jumlah += 1;
       if (g.status_akun === 'aktif') cur.aktif += 1;
@@ -414,7 +410,7 @@ export default function AdminGuruPage() {
 
   // ─── Form Helpers ────────────────────────────────────────────────────────
   const resetForm = () => {
-    setNip(''); setNamaLengkap(''); setJurusan(''); setEmail(''); setPassword(''); setErrorMsg('');
+    setNip(''); setNamaLengkap(''); setJurusanId(''); setEmail(''); setPassword(''); setErrorMsg('');
   };
 
   const openAdd = () => { setEditingGuru(null); resetForm(); setIsModalOpen(true); };
@@ -422,7 +418,7 @@ export default function AdminGuruPage() {
     setEditingGuru(g);
     setNip(g.nip || '');
     setNamaLengkap(g.nama_lengkap || '');
-    setJurusan(g.jurusan || '');
+    setJurusanId(g.jurusan_id || '');
     setEmail(g.user?.email || g.email || '');
     setPassword('');
     setErrorMsg('');
@@ -435,7 +431,7 @@ export default function AdminGuruPage() {
       const payload = {
         nip,
         nama_lengkap: namaLengkap,
-        jurusan,
+        jurusan_id: jurusanId ? Number(jurusanId) : null,
         status_akun: editingGuru ? editingGuru.status_akun : 'aktif',
       };
       if (editingGuru) return updateGuru(editingGuru.id, payload);
@@ -447,24 +443,25 @@ export default function AdminGuruPage() {
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['admin-guru'] });
       setIsModalOpen(false);
+      toast.success(editingGuru ? 'Data guru berhasil diperbarui.' : 'Guru baru berhasil ditambahkan.');
       if (!editingGuru && data?._usedEmail) {
         setCreatedCredentials({ email: data._usedEmail, password: data._usedPassword });
       }
       resetForm();
     },
-    onError: (e: any) => setErrorMsg(e.message || 'Gagal menyimpan data guru.'),
+    onError: (e: any) => { setErrorMsg(e.message || 'Gagal menyimpan data guru.'); toast.error(e.message || 'Gagal menyimpan data guru.'); },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteGuru(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-guru'] }); setDeleteTarget(null); },
-    onError: (e: any) => setErrorMsg(e.message || 'Gagal menghapus guru.'),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-guru'] }); setDeleteTarget(null); toast.success('Data guru berhasil dihapus.'); },
+    onError: (e: any) => toast.error(e.message || 'Gagal menghapus guru.'),
   });
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => toggleGuruStatus(id, status),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-guru'] }); setStatusTarget(null); },
-    onError: (e: any) => setErrorMsg(e.message || 'Gagal mengubah status akun guru.'),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-guru'] }); setStatusTarget(null); toast.success('Status akun guru berhasil diubah.'); },
+    onError: (e: any) => toast.error(e.message || 'Gagal mengubah status akun guru.'),
   });
 
   const handleSaveStatus = (newStatus: string) => {
@@ -698,7 +695,7 @@ export default function AdminGuruPage() {
                       <td className="px-4 py-3.5">
                         {g.jurusan ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                            <BookOpen className="w-3 h-3 text-indigo-500" /> {g.jurusan}
+                            <BookOpen className="w-3 h-3 text-indigo-500" /> {g.jurusan.nama}
                           </span>
                         ) : (
                           <span className="text-gray-300">—</span>
@@ -785,7 +782,7 @@ export default function AdminGuruPage() {
         )}
       </div>
 
-      {/* ── Rekap Jurusan ──────────────────────────────────────────────────── */}
+      {/* ── Rekap Jurusan ────────────────────────────────────────────────────
       {!isLoading && rekapJurusan.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mt-5">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
@@ -855,7 +852,7 @@ export default function AdminGuruPage() {
             </table>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* ── Modal Form Tambah / Edit Guru ─────────────────────────────────── */}
       {isModalOpen && (
@@ -925,15 +922,12 @@ export default function AdminGuruPage() {
                 </label>
                 <div className="relative">
                   <select
-                    value={jurusan}
-                    onChange={e => setJurusan(e.target.value)}
+                    value={jurusanId}
+                    onChange={e => setJurusanId(e.target.value)}
                     className="w-full px-3.5 py-2.5 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 appearance-none bg-white cursor-pointer"
                   >
                     <option value="">— Pilih Jurusan —</option>
-                    {JURUSAN_OPTIONS.map(j => <option key={j} value={j}>{j}</option>)}
-                    {editingGuru && jurusan && !JURUSAN_OPTIONS.includes(jurusan) && (
-                      <option value={jurusan}>{jurusan} (lama)</option>
-                    )}
+                    {(jurusanData as any[]).map(j => <option key={j.id} value={j.id}>{j.nama}</option>)}
                   </select>
                   <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>

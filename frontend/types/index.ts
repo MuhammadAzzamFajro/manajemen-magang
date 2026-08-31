@@ -20,12 +20,32 @@ export interface User {
   avatar?: string | null;
 }
 
+export interface Jurusan {
+  id: number;
+  nama: string;
+  guru_count?: number;
+  kelas_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Kelas {
+  id: number;
+  nama: string;
+  jurusan_id?: number | null;
+  jurusan?: Jurusan | null;
+  siswa_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Guru {
   id: number;
   user_id?: number;
   nip: string;
   nama_lengkap: string;
-  jurusan?: string;
+  jurusan_id?: number | null;
+  jurusan?: Jurusan | null;
   email?: string;
   status_akun: 'aktif' | 'nonaktif';
   penempatan_count?: number;
@@ -38,7 +58,8 @@ export interface Siswa {
   user_id?: number;
   nis: string;
   nama_lengkap: string;
-  kelas: string;
+  kelas_id?: number | null;
+  kelas?: Kelas | null;
   email_kontak?: string;
   status_magang: 'belum_magang' | 'pengajuan' | 'sedang_magang' | 'lulus';
   penempatan?: PenempatanMagang;

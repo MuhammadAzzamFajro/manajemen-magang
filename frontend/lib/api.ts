@@ -20,6 +20,21 @@ export const clearToken = () => {
   if (typeof window !== 'undefined') sessionStorage.removeItem('simmas_token');
 };
 
+function handleResponseError(res: Response, json: any): never {
+  if (res.status === 401) {
+    clearToken();
+    if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('simmas_profile');
+    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+      window.location.href = '/login';
+    }
+  }
+  if (res.status === 422 && json.errors) {
+    const messages = Object.values(json.errors).flat().join(' ');
+    throw new Error(messages || json.message || 'Validasi gagal.');
+  }
+  throw new Error(json.message || `HTTP ${res.status}`);
+}
+
 // ─── Core fetch wrapper ───────────────────────────────────────────────────────
 async function request<T = any>(
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
@@ -42,12 +57,7 @@ async function request<T = any>(
   const json = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    // Laravel validation error (422) → format errors
-    if (res.status === 422 && json.errors) {
-      const messages = Object.values(json.errors).flat().join(' ');
-      throw new Error(messages || json.message || 'Validasi gagal.');
-    }
-    throw new Error(json.message || `HTTP ${res.status}`);
+    handleResponseError(res, json);
   }
 
   // Laravel API selalu wrap dalam { status: true, data: ... }
@@ -71,11 +81,7 @@ export const api = {
     const res = await fetch(`${BASE_URL}${path}`, { method: 'POST', headers, body: formData });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      if (res.status === 422 && json.errors) {
-        const messages = Object.values(json.errors).flat().join(' ');
-        throw new Error(messages || json.message || 'Validasi gagal.');
-      }
-      throw new Error(json.message || `HTTP ${res.status}`);
+      handleResponseError(res, json);
     }
     return (json.data !== undefined ? json.data : json) as T;
   },
@@ -89,11 +95,7 @@ export const api = {
     const res = await fetch(`${BASE_URL}${path}`, { method: 'POST', headers, body: formData });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      if (res.status === 422 && json.errors) {
-        const messages = Object.values(json.errors).flat().join(' ');
-        throw new Error(messages || json.message || 'Validasi gagal.');
-      }
-      throw new Error(json.message || `HTTP ${res.status}`);
+      handleResponseError(res, json);
     }
     return (json.data !== undefined ? json.data : json) as T;
   },

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAbsensiSiswa, submitAbsensi } from '@/lib/db';
 import { getAuthUser } from '@/lib/auth';
+import { toast } from '@/lib/toast';
 import {
   CalendarCheck,
   Clock,
@@ -12,13 +13,20 @@ import {
   AlertCircle,
   Camera,
   UploadCloud,
-  ImageIcon,
   X,
   LogIn,
   LogOut as LogOutIcon,
   RotateCw,
   Video,
 } from 'lucide-react';
+
+// ─── Photo URL Resolver ─────────────────────────────────────────────────────────
+const resolvePhotoUrl = (path?: string | null) => {
+  if (!path) return null;
+  if (path.startsWith('http') || path.startsWith('data:')) return path;
+  const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '');
+  return `${base}/storage/${path.replace(/^\/+/, '')}`;
+};
 
 // ─── Date Formatter ─────────────────────────────────────────────────────────────
 const formatIndonesianDateShort = (dateStr: string) => {
@@ -225,9 +233,12 @@ export default function SiswaAbsensiPage() {
       queryClient.invalidateQueries({ queryKey: ['siswa-absensi'] });
       queryClient.invalidateQueries({ queryKey: ['siswa-dashboard'] });
       resetForm();
+      toast.success('Presensi berhasil disimpan.');
     },
     onError: (err: any) => {
-      setErrorMsg(err?.response?.data?.message || err.message || 'Gagal menyimpan presensi.');
+      const msg = err?.response?.data?.message || err.message || 'Gagal menyimpan presensi.';
+      setErrorMsg(msg);
+      toast.error(msg);
     },
   });
 
@@ -386,18 +397,28 @@ export default function SiswaAbsensiPage() {
                       <div className="flex items-center gap-2">
                         {a.foto_masuk && (
                           <button
-                            onClick={() => setSelectedPhotoModal(a.foto_masuk)}
-                            className="px-2.5 py-1 text-[11px] font-semibold text-blue-600 border border-blue-200 hover:bg-blue-50 rounded-lg flex items-center gap-1 transition-colors"
+                            onClick={() => setSelectedPhotoModal(resolvePhotoUrl(a.foto_masuk_url || a.foto_masuk))}
+                            title="Lihat foto presensi masuk"
+                            className="group relative w-11 h-11 rounded-lg overflow-hidden border border-gray-200 hover:ring-2 hover:ring-blue-500/40 transition shrink-0"
                           >
-                            <ImageIcon className="w-3 h-3" /> Foto Masuk
+                            <img
+                              src={resolvePhotoUrl(a.foto_masuk_url || a.foto_masuk) || undefined}
+                              alt="Foto masuk"
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                            />
                           </button>
                         )}
                         {a.foto_pulang && (
                           <button
-                            onClick={() => setSelectedPhotoModal(a.foto_pulang)}
-                            className="px-2.5 py-1 text-[11px] font-semibold text-blue-600 border border-blue-200 hover:bg-blue-50 rounded-lg flex items-center gap-1 transition-colors"
+                            onClick={() => setSelectedPhotoModal(resolvePhotoUrl(a.foto_pulang_url || a.foto_pulang))}
+                            title="Lihat foto presensi pulang"
+                            className="group relative w-11 h-11 rounded-lg overflow-hidden border border-gray-200 hover:ring-2 hover:ring-amber-500/40 transition shrink-0"
                           >
-                            <ImageIcon className="w-3 h-3" /> Foto Pulang
+                            <img
+                              src={resolvePhotoUrl(a.foto_pulang_url || a.foto_pulang) || undefined}
+                              alt="Foto pulang"
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                            />
                           </button>
                         )}
                         {!a.foto_masuk && !a.foto_pulang && (
@@ -423,6 +444,11 @@ export default function SiswaAbsensiPage() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            if ((presensiType === 'masuk' || presensiType === 'pulang') && !fotoFile) {
+              setErrorMsg('Foto presensi wajib diambil untuk presensi masuk / pulang.');
+              toast.error('Foto presensi wajib diambil untuk presensi masuk / pulang.');
+              return;
+            }
             submitMutation.mutate();
           }}
           className="space-y-4"
@@ -495,7 +521,20 @@ export default function SiswaAbsensiPage() {
           <div>
             <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
               FOTO BUKTI PRESENSI (SELFIE / LOKASI)
+              {presensiType === 'masuk' || presensiType === 'pulang' ? (
+                <span className="text-rose-500"> *</span>
+              ) : null}
             </label>
+            {presensiType === 'masuk' || presensiType === 'pulang' ? (
+              <p className="text-[11px] text-blue-600 bg-blue-50 border border-blue-100 p-2 rounded-lg mb-2 font-medium">
+                Wajib mengambil foto baru untuk presensi{' '}
+                <strong>{presensiType === 'masuk' ? 'MASUK' : 'PULANG'}</strong>.
+              </p>
+            ) : (
+              <p className="text-[11px] text-gray-400 mb-2">
+                Wajib lampirkan bukti/surat yang mendukung pengajuan izin atau sakit.
+              </p>
+            )}
 
             {cameraError && (
               <p className="text-[11px] text-amber-600 bg-amber-50 border border-amber-200 p-2 rounded-lg mb-2 font-medium">

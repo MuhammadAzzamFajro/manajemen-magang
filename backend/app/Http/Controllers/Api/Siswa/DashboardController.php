@@ -8,9 +8,21 @@ use App\Models\Absensi;
 use App\Models\JurnalHarian;
 use App\Models\PengajuanMagang;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
 class DashboardController extends Controller
 {
+    #[OA\Get(
+        path: '/api/siswa/dashboard',
+        summary: 'Statistik dashboard siswa',
+        description: 'Ringkasan status magang, penempatan, pengajuan terakhir, absensi hari ini, serta rekap presensi & jurnal siswa yang sedang login.',
+        tags: ['Siswa'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Statistik dashboard siswa.'),
+            new OA\Response(response: 404, description: 'Profil siswa tidak ditemukan.'),
+        ],
+    )]
     public function index(Request $request)
     {
         $siswa = $request->user()->siswa;

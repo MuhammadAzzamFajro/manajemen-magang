@@ -10,9 +10,24 @@ Route::get('/public/landing-stats', [LandingController::class, 'stats']);
 // Auth Endpoints
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::get('/debug-header', function () {
+    return response()->json([
+        'authorization' => request()->header('Authorization'),
+        'bearer_token'  => request()->bearerToken(),
+        'all_headers'   => request()->headers->all(),
+    ]);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+
+    // Daftar DUDI umum (boleh diakses semua role untuk keperluan form)
+    Route::get('/dudi', [\App\Http\Controllers\Api\DudiController::class, 'index']);
+
+    // Daftar jurusan & kelas umum (boleh diakses semua role untuk keperluan form)
+    Route::get('/jurusan', [\App\Http\Controllers\Api\Admin\JurusanController::class, 'index']);
+    Route::get('/kelas', [\App\Http\Controllers\Api\Admin\KelasController::class, 'index']);
 
   
     // Admin Endpoints
@@ -34,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/siswa/{id}', [\App\Http\Controllers\Api\Admin\SiswaController::class, 'update']);
         Route::delete('/siswa/{id}', [\App\Http\Controllers\Api\Admin\SiswaController::class, 'destroy']);
         Route::post('/siswa/{id}/plotting', [\App\Http\Controllers\Api\Admin\SiswaController::class, 'plotting']);
+        Route::post('/siswa/pengajuan/{id}/proses', [\App\Http\Controllers\Api\Admin\SiswaController::class, 'prosesPengajuan']);
 
         // DUDI CRUD
         Route::get('/dudi', [\App\Http\Controllers\Api\Admin\DudiController::class, 'index']);
@@ -53,6 +69,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/settings', [\App\Http\Controllers\Api\Admin\SettingsController::class, 'show']);
         Route::put('/settings', [\App\Http\Controllers\Api\Admin\SettingsController::class, 'update']);
         Route::get('/logs', [\App\Http\Controllers\Api\Admin\LogsController::class, 'index']);
+
+        // Jurusan & Kelas CRUD
+        Route::post('/jurusan', [\App\Http\Controllers\Api\Admin\JurusanController::class, 'store']);
+        Route::put('/jurusan/{id}', [\App\Http\Controllers\Api\Admin\JurusanController::class, 'update']);
+        Route::delete('/jurusan/{id}', [\App\Http\Controllers\Api\Admin\JurusanController::class, 'destroy']);
+
+        Route::post('/kelas', [\App\Http\Controllers\Api\Admin\KelasController::class, 'store']);
+        Route::put('/kelas/{id}', [\App\Http\Controllers\Api\Admin\KelasController::class, 'update']);
+        Route::delete('/kelas/{id}', [\App\Http\Controllers\Api\Admin\KelasController::class, 'destroy']);
     });
 
     // Guru Endpoints

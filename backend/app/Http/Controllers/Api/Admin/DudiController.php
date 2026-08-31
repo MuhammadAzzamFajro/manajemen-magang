@@ -6,9 +6,26 @@ use App\Http\Controllers\Controller;
 use App\Models\TempatMagang;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
 class DudiController extends Controller
 {
+    #[OA\Get(
+        path: '/api/admin/dudi',
+        summary: 'Daftar mitra DUDI',
+        description: 'Daftar semua tempat magang beserta jumlah penempatan. Dapat difilter dengan pencarian.',
+        tags: ['Admin'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'search', in: 'query', description: 'Cari berdasarkan nama perusahaan atau bidang usaha.', required: false, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Daftar DUDI.', content: new OA\JsonContent(
+                type: 'array',
+                items: new OA\Items(ref: '#/components/schemas/TempatMagang'),
+            )),
+        ],
+    )]
     public function index(Request $request)
     {
         $query = TempatMagang::withCount('penempatan');
@@ -24,6 +41,27 @@ class DudiController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: '/api/admin/dudi',
+        summary: 'Tambah mitra DUDI',
+        tags: ['Admin'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['nama_perusahaan', 'bidang_usaha', 'nama_pic', 'kontak_pic', 'kuota', 'alamat'],
+            properties: [
+                new OA\Property(property: 'nama_perusahaan', type: 'string', example: 'PT Teknologi Nusantara'),
+                new OA\Property(property: 'bidang_usaha', type: 'string', example: 'Teknologi Informasi'),
+                new OA\Property(property: 'nama_pic', type: 'string', example: 'Budi Santoso'),
+                new OA\Property(property: 'kontak_pic', type: 'string', example: '0812-3456-7890'),
+                new OA\Property(property: 'kuota', type: 'integer', minimum: 1, example: 10),
+                new OA\Property(property: 'alamat', type: 'string', example: 'Jl. Industri No. 10, Malang'),
+            ],
+        )),
+        responses: [
+            new OA\Response(response: 201, description: 'DUDI berhasil ditambahkan.', content: new OA\JsonContent(ref: '#/components/schemas/TempatMagang')),
+            new OA\Response(response: 422, description: 'Validasi gagal.'),
+        ],
+    )]
     public function store(Request $request)
     {
         $request->validate([
@@ -54,6 +92,29 @@ class DudiController extends Controller
         ], 201);
     }
 
+    #[OA\Put(
+        path: '/api/admin/dudi/{id}',
+        summary: 'Perbarui data mitra DUDI',
+        tags: ['Admin'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['nama_perusahaan', 'bidang_usaha', 'nama_pic', 'kontak_pic', 'kuota', 'alamat'],
+            properties: [
+                new OA\Property(property: 'nama_perusahaan', type: 'string'),
+                new OA\Property(property: 'bidang_usaha', type: 'string'),
+                new OA\Property(property: 'nama_pic', type: 'string'),
+                new OA\Property(property: 'kontak_pic', type: 'string'),
+                new OA\Property(property: 'kuota', type: 'integer', minimum: 1),
+                new OA\Property(property: 'alamat', type: 'string'),
+            ],
+        )),
+        responses: [
+            new OA\Response(response: 200, description: 'DUDI berhasil diperbarui.', content: new OA\JsonContent(ref: '#/components/schemas/TempatMagang')),
+        ],
+    )]
     public function update(Request $request, $id)
     {
         $dudi = TempatMagang::findOrFail($id);
@@ -80,6 +141,18 @@ class DudiController extends Controller
         ]);
     }
 
+    #[OA\Patch(
+        path: '/api/admin/dudi/{id}/verifikasi',
+        summary: 'Toggle status verifikasi DUDI',
+        tags: ['Admin'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Status verifikasi berhasil diubah.', content: new OA\JsonContent(ref: '#/components/schemas/TempatMagang')),
+        ],
+    )]
     public function verifikasi($id)
     {
         $dudi = TempatMagang::findOrFail($id);
@@ -95,6 +168,20 @@ class DudiController extends Controller
         ]);
     }
 
+    #[OA\Delete(
+        path: '/api/admin/dudi/{id}',
+        summary: 'Hapus mitra DUDI',
+        description: 'Penghapusan ditolak apabila masih ada siswa yang sedang aktif magang di DUDI tersebut.',
+        tags: ['Admin'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'DUDI berhasil dihapus.'),
+            new OA\Response(response: 422, description: 'Gagal: masih ada siswa aktif magang.'),
+        ],
+    )]
     public function destroy($id)
     {
         $dudi = TempatMagang::findOrFail($id);
